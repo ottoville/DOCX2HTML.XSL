@@ -10,4 +10,4 @@ So far following features are supported:
 - Tables
 - Form items (textbox, checkbox)
 
-The XSLT has been tested with Saxonce XSLT processor, but it should work with any XSLT 2.0 prosessor.
+The XSLT has been tested with Saxonce XSLT processor, but it should work with any XSLT 2.0 processor. In order to do conversion DOCX file need to be unzipped and docx2html.xsl stylesheet applied to document.xml file. Notice that current status of browsers native XSLT processors are lacking so many features that it is not possible to use them with this XSLT file.
