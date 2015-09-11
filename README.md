@@ -3,7 +3,7 @@ This project is aim to create perfect conversion from docx fileformat to html.
 
 So far following features are supported:
 -Pages
- - Page size, potrait
+-Page size, potrait
 -Paragraphs, indents, paddings, 
 -Lists
 -Text styles: italic, underline, bold, color, font, background etc
