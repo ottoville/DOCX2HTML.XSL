@@ -5,7 +5,9 @@ Guidelines for projct:
 - Apperance is done with pure CSS3
 - Maintain HTML5 sematics (Tricky one with nested lists)
 - Do not lose information
+
 So far following features are supported:
+
 - Pages (Page size, page orientation, forced page breaks, headers)
 - Paragraphs ( indents, paddings) 
 - Lists (also nested list with right indents)
