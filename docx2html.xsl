@@ -20,6 +20,7 @@
 	-->
 	<xsl:import href="paragraphs.xsl"/>
 	<xsl:import href="text.xsl"/>
+	<xsl:import href="table.xsl"/>
 	<xsl:template name="borders">
 		<xsl:for-each select="*">
 			<xsl:variable name="border-style">
@@ -80,9 +81,9 @@
 		</xsl:for-each>
 	</xsl:template>
 	<xsl:template match="w:pPr|w:tblPr|w:trPr|w:tcPr|w:sdtPr">
-			<xsl:param name="scopeselector"/>
-			<xsl:param name="listintend" />
-			<xsl:variable name="nestedtdcssrules">
+		<xsl:param name="scopeselector"/>
+		<xsl:param name="listintend" />
+		<xsl:variable name="nestedtdcssrules">
 			<xsl:value-of select="$scopeselector"/> td {
 			<xsl:for-each select="./*">
 				<xsl:choose>
@@ -193,6 +194,7 @@
 		</xsl:choose>
 	</xsl:template>
 	<xsl:template match="w:body">
+		<meta name="{'generator'}" content="{'docx2html.xsl https://github.com/ottoville/DOCX2HTML.XSLT'}"/>
 		<article>
 			<style>
 				ins {text-decoration:none;}
@@ -321,67 +323,6 @@
 			<xsl:with-param name="reldocument" select="$reldocument" />
 		</xsl:apply-templates>
 	</xsl:template>
-	<xsl:template match="w:tc">
-		<xsl:param name="reldocument" />
-		<xsl:if test="count(w:tcPr/w:vMerge[not(@w:val='restart')])=0">
-			<td>
-				<xsl:if test="count(w:tcPr/w:vMerge[@w:val='restart'])">
-					<xsl:variable name="rowposition" select="count(../preceding-sibling::w:tr) + 1" />
-					<xsl:variable name="curpos" select="position()" />
-					<xsl:variable name="nextrestart">
-						<xsl:choose>
-							<xsl:when test="count(../following-sibling::w:tr/w:tc/w:tcPr/w:vMerge[@w:val='restart']/../../../preceding-sibling::w:tr)">
-								<xsl:value-of select="count(../following-sibling::w:tr/w:tc/w:tcPr/w:vMerge[@w:val='restart']/../../../preceding-sibling::w:tr)+1"/>
-							</xsl:when>
-							<xsl:otherwise>
-								<xsl:value-of select="'no'"/>
-							</xsl:otherwise>
-						</xsl:choose>				
-					</xsl:variable>
-					<xsl:choose>
-						<xsl:when test="$nextrestart='no'">
-							<xsl:attribute name="rowspan">
-								<xsl:value-of select="count(../following-sibling::w:tr/w:tc/w:tcPr/w:vMerge)+1"/>
-							</xsl:attribute>
-						</xsl:when>
-						<xsl:otherwise>
-							<xsl:for-each select="../following-sibling::w:tr[position() &lt; $nextrestart]/*[position()=$curpos]/w:tcPr/w:vMerge">
-								
-								<xsl:variable name="thisrowposition" select="count(./preceding-sibling::w:tr) + 1 - $rowposition" />
-
-								<xsl:value-of select="$thisrowposition"/>|
-							</xsl:for-each>
-						</xsl:otherwise>
-					</xsl:choose>
-				</xsl:if>
-				<xsl:if test="count(w:tcPr/w:gridSpan)">
-					<xsl:attribute name="colspan"><xsl:value-of select="w:tcPr/w:gridSpan/@w:val"/></xsl:attribute>
-				</xsl:if>
-				<xsl:apply-templates select="w:tcPr|w:p">
-					<xsl:with-param name="reldocument" select="$reldocument" />
-				</xsl:apply-templates>
-			</td>
-		</xsl:if>
-	</xsl:template>
-	<xsl:template match="w:tr">
-		<xsl:param name="reldocument" />
-		<tr>
-			<xsl:apply-templates select="w:trPr|w:tc">
-				<xsl:with-param name="reldocument" select="$reldocument" />
-			</xsl:apply-templates>
-		</tr>
-	</xsl:template>
-	<xsl:template match="w:tbl">
-		<xsl:param name="reldocument" />
-		<xsl:param name="scopeselector">table[data-tableid="<xsl:number/>"]</xsl:param>
-		<table>
-			<xsl:attribute name="data-tableid"><xsl:number/></xsl:attribute>
-			<xsl:apply-templates select="w:tblPr|w:tblGrid|w:tr">
-				<xsl:with-param name="reldocument" select="$reldocument" />
-				<xsl:with-param name="scopeselector" select="$scopeselector" />
-			</xsl:apply-templates>
-		</table>
-	</xsl:template>
 	<xsl:template match="w:hyperlink">
 		<xsl:param name="reldocument" />
 		<a>
@@ -399,12 +340,16 @@
 		</br>
 	</xsl:template>
 	<xsl:template match="w:tab">
+		<xsl:variable name="tabstop" select="number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20"/>
 		<xsl:choose>
 			<xsl:when test="count(../../w:pPr/w:ind[@w:hanging]) and count(./preceding-sibling::w:r/w:tab)=0">
+				<br>
+					<xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute>
+				</br>
 				<br style="{'width:18pt;display:inline-block'}"/>
 			</xsl:when>
 			<xsl:otherwise>
-				<span><xsl:attribute name="style">width:18pt;display:inline-block</xsl:attribute> </span>
+				<span><xsl:attribute name="style"><xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute></xsl:attribute> </span>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
