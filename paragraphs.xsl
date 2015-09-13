@@ -11,7 +11,7 @@
 	xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
 	xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
 	xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-    exclude-result-prefixes="xs w r pr wp a pic xhtml"
+    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps"
     version="2.0">
 <!-- List continue-->
 	<xsl:template name="listitem" match="w:p[w:pPr/w:numPr and count(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]) &gt; 0 ]">
@@ -60,6 +60,7 @@
 	<xsl:template name="paragraph" match="w:p[not(w:pPr/w:numPr)]">
 		<xsl:param name="reldocument" />
 		<xsl:param name="listintend"/>
+		<xsl:variable name="currentid" select="generate-id(current())" />
 		<xsl:variable name="class">
 			<xsl:if test="count(w:pPr/w:pStyle)">
 				<xsl:value-of select="w:pPr/w:pStyle/@w:val"/>
@@ -68,9 +69,14 @@
 				<xsl:value-of select="concat(' ',generate-id(../..))"/>
 			</xsl:if>
 		</xsl:variable>
-		<p class="{normalize-space($class)}" pid="{generate-id(.)}">
-			<xsl:apply-templates select="w:pPr|w:r[w:fldChar[@w:fldCharType='begin'] or (not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate'))]|w:ins|w:hyperlink">
-				<xsl:with-param name="scopeselector">p[pid='<xsl:value-of select="generate-id(.)"/>']</xsl:with-param>
+		<p class="{normalize-space($class)}" pid="{$currentid}">
+			<xsl:apply-templates select="w:pPr|w:r[
+										(w:fldChar[@w:fldCharType='begin'] or 
+										(not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')))
+										and 
+											not(local-name(./preceding-sibling::*[1])='r' and deep-equal(./w:rPr|./w:tab|./w:fldChar, ./preceding-sibling::*[1]/w:rPr|./preceding-sibling::*[1]/w:tab|./preceding-sibling::*[1]/w:fldChar))
+										]|w:ins|w:hyperlink">
+				<xsl:with-param name="scopeselector">p[pid='<xsl:value-of select="$currentid"/>']</xsl:with-param>
 				<xsl:with-param name="listintend" select="$listintend" />
 				<xsl:with-param name="reldocument" select="$reldocument" />
 			</xsl:apply-templates>

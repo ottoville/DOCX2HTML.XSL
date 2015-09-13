@@ -11,7 +11,7 @@
 	xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
 	xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
 	xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-    exclude-result-prefixes="xs w r pr wp a pic xhtml"
+    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps"
     version="2.0">
 	<xsl:template match="w:rPr" name="spanstyle">
 		<xsl:if test="../w:t/@xml:space='preserve'">white-space:pre-wrap;</xsl:if>
@@ -22,7 +22,7 @@
 					font-kerning:auto;
 				</xsl:when>
 				<xsl:when test="local-name(.)='shd'">background-color:#<xsl:value-of select="@w:fill"/>;</xsl:when>
-				<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="@w:ascii|@w:cs|@w:eastAsia"/>;</xsl:when>
+				<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="@w:hAnsi|@w:ascii|@w:cs|@w:eastAsia"/>;</xsl:when>
 				<xsl:when test="local-name(.)='color'">color:#<xsl:value-of select="@w:val"/>;</xsl:when>
 				<xsl:when test="local-name(.)='sz' or local-name(.)='szCs'">
 					<xsl:choose>
@@ -56,14 +56,29 @@
 				<xsl:value-of select="concat(' ',../../w:pPr/w:rPr/w:rStyle/@w:val)"/>
 			</xsl:if>
 		</xsl:variable>
+		<xsl:variable name="thisid" select="generate-id(.)"/>
+		<xsl:variable name="nextdifferent" select="./following-sibling::*[not(local-name(.)=local-name(current()) and deep-equal(./w:rPr|./w:tab,current()/w:rPr|current()/w:tab))][1]"/>
 		<span>
 			<xsl:attribute name="class" select="normalize-space($class)"/>
 			<xsl:attribute name="style">
 				<xsl:apply-templates select="w:rPr"/>
 			</xsl:attribute>
-			<xsl:apply-templates select="w:t|w:drawing">
+			<xsl:apply-templates select="w:t|w:tab|w:drawing">
 				<xsl:with-param name="reldocument" select="$reldocument" />
 			</xsl:apply-templates>
+			<xsl:if test="count(./following-sibling::*)!=0 and (generate-id(./following-sibling::*[1])!=generate-id($nextdifferent))">
+				<xsl:apply-templates select="./following-sibling::*/w:tab intersect $nextdifferent/preceding-sibling::*/w:tab">
+					<xsl:with-param name="reldocument" select="$reldocument" />
+				</xsl:apply-templates>
+				<xsl:apply-templates select="./following-sibling::*/w:t intersect $nextdifferent/preceding-sibling::*/w:t">
+					<xsl:with-param name="reldocument" select="$reldocument" />
+				</xsl:apply-templates>
+			</xsl:if>
+			<xsl:if test="count(./following-sibling::*)!=0 and count($nextdifferent)=0">
+				<xsl:apply-templates select="./following-sibling::*/w:tab|./following-sibling::*/w:t">
+					<xsl:with-param name="reldocument" select="$reldocument" />
+				</xsl:apply-templates>
+			</xsl:if>
 		</span>
 	</xsl:template>
 	<xsl:template match="w:r[w:fldChar[@w:fldCharType='begin']]">
