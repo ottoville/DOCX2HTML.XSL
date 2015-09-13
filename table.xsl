@@ -48,7 +48,7 @@
 				<xsl:if test="count(w:tcPr/w:gridSpan)">
 					<xsl:attribute name="colspan"><xsl:value-of select="w:tcPr/w:gridSpan/@w:val"/></xsl:attribute>
 				</xsl:if>
-				<xsl:apply-templates select="w:tcPr|w:p">
+				<xsl:apply-templates select="w:tcPr|w:p|w:sdt">
 					<xsl:with-param name="reldocument" select="$reldocument" />
 				</xsl:apply-templates>
 			</td>
@@ -59,7 +59,7 @@
 		<xsl:param name="trscopeselector">tr[data-rid="<xsl:value-of select="generate-id(.)"/>"]</xsl:param>
 		<tr>
 			<xsl:attribute name="data-rid" select="generate-id(.)"/>
-			<xsl:apply-templates select="w:trPr|w:tc">
+			<xsl:apply-templates select="w:trPr|w:tc|w:sdt">
 				<xsl:with-param name="scopeselector" select="$trscopeselector" />
 				<xsl:with-param name="reldocument" select="$reldocument" />
 			</xsl:apply-templates>

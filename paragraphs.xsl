@@ -75,7 +75,7 @@
 										(not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')))
 										and 
 											not(local-name(./preceding-sibling::*[1])='r' and deep-equal(./w:rPr|./w:tab|./w:fldChar, ./preceding-sibling::*[1]/w:rPr|./preceding-sibling::*[1]/w:tab|./preceding-sibling::*[1]/w:fldChar))
-										]|w:ins|w:hyperlink">
+										]|w:ins|w:hyperlink|w:sdt">
 				<xsl:with-param name="scopeselector">p[pid='<xsl:value-of select="$currentid"/>']</xsl:with-param>
 				<xsl:with-param name="listintend" select="$listintend" />
 				<xsl:with-param name="reldocument" select="$reldocument" />
