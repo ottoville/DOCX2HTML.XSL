@@ -9,14 +9,17 @@
     xmlns:pr="http://schemas.openxmlformats.org/package/2006/relationships"
 	xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
 	xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
-    xmlns:pt="http://powertools.codeplex.com/2011"
-    xmlns:d2h="http://www.github.com/rnathanday/docx2html"
-    xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 	xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
 	xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-    extension-element-prefixes="ixsl"
-    exclude-result-prefixes="xs pt w r pr d2h ixsl wp a pic xhtml"
+    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps"
     version="2.0">
+	<!-- docx2html.xsl
+		Project started by Otto-Ville Lamminpää
+			ottoville.lamminpaa@gmail.com
+			+358445596869
+	-->
+	<xsl:import href="paragraphs.xsl"/>
+	<xsl:import href="text.xsl"/>
 	<xsl:template name="borders">
 		<xsl:for-each select="*">
 			<xsl:variable name="border-style">
@@ -189,48 +192,10 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-	<xsl:template match="w:rPr" name="spanstyle">
-		<xsl:variable name="cssrules">
-			<xsl:if test="../w:t/@xml:space='preserve'">white-space:pre-wrap;</xsl:if>
-			<xsl:for-each select="./*">
-				<xsl:choose>
-					<xsl:when test="local-name(.)='spacing'">letter-spacing:<xsl:value-of select='number(@w:val) div 12'/>pt;</xsl:when>
-					<xsl:when test='local-name(.)="kern" and number(../w:sz/@w:val) &gt;= number(@w:val)'>
-						font-kerning:auto;
-					</xsl:when>
-					<xsl:when test="local-name(.)='shd'">background-color:#<xsl:value-of select="@w:fill"/>;</xsl:when>
-					<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="@w:ascii|@w:cs|@w:eastAsia"/>;</xsl:when>
-					<xsl:when test="local-name(.)='color'">color:#<xsl:value-of select="@w:val"/>;</xsl:when>
-					<xsl:when test="local-name(.)='sz' or local-name(.)='szCs'">
-						<xsl:choose>
-							<xsl:when test='number(@w:val) &gt; 0'>
-								font-size:<xsl:value-of select='number(@w:val) div 2'/>pt;
-							</xsl:when>
-							<xsl:otherwise>
-								font-size:<xsl:value-of select="0"/>;
-							</xsl:otherwise>
-						</xsl:choose>
-					</xsl:when>
-					<xsl:when test="local-name(.)='b'">font-weight:bold;</xsl:when>
-					<xsl:when test="local-name(.)='i'">font-style:italic;</xsl:when>
-					<xsl:when test="local-name(.)='u'">text-decoration:underline;</xsl:when>
-				</xsl:choose>
-			</xsl:for-each>
-		</xsl:variable>
-		<xsl:choose>
-			<xsl:when test="local-name(..)='style' or local-name(..)='pPr' or local-name(..)='lvl' or local-name(..)='sdtPr'">
-				<xsl:value-of select="$cssrules"/>
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:attribute name="style">
-					<xsl:value-of select="$cssrules"/>
-				</xsl:attribute>
-			</xsl:otherwise>
-		</xsl:choose>
-	</xsl:template>
 	<xsl:template match="w:body">
 		<article>
 			<style>
+				ins {text-decoration:none;}
 				ul {list-style-position:inside}
 				ul>li>p:first-child {display:inline;}
 				ul.outsidee { list-style-position:outside} ul.outsidee>li>p:first-child { text-indent:0 !important;display:block}
@@ -291,9 +256,9 @@
 			</xsl:if>
 		</xsl:for-each>
 	</xsl:template>
-	<xsl:template name="sections"><!-- Aina sivun vimppa kappale -->
+	<xsl:template name="sections"><!-- Always the last page of document -->
 		<xsl:param name="reldocument" />
-		<!-- Oma sivumääritelmä, tai seuraava, tai dokumentin-->
+		<!-- Either the page section, following section or document section-->
 		<xsl:variable name="sectionselector" select="w:pPr/w:sectPr|./following-sibling::*[w:pPr/w:sectPr][1]/w:pPr/w:sectPr|/w:document/w:body/w:sectPr"/>
 		<xsl:variable name="prevpage" select="preceding-sibling::*[w:pPr/w:sectPr or ./following-sibling::*[1][w:r/w:br/@w:type='page'][not(./following-sibling::*[1][w:pPr/w:sectPr])]][1]" />
 		<xsl:variable name="thisid" select="generate-id(current())" />
@@ -308,7 +273,7 @@
 				padding:<xsl:value-of select="$paddingtop div 20"/>pt <xsl:value-of select="$paddingright div 20"/>pt <xsl:value-of select="$paddingbottom div 20"/>pt <xsl:value-of select="$paddingleft div 20"/>pt;
 			</xsl:attribute>
 			<xsl:choose>
-				<xsl:when test="not($prevpage)"> <!--eka sivu tai yksisivuinen asiakirja -->
+				<xsl:when test="not($prevpage)"> <!--first page or document with one page -->
 					<xsl:if test='count($sectionselector[1]/w:headerReference[@w:type="first"])'>
 						<header>
 							<xsl:variable name="hyperlinkid" select='$sectionselector[1]/w:headerReference[@w:type="first"]/@r:id'/>
@@ -417,100 +382,6 @@
 			</xsl:apply-templates>
 		</table>
 	</xsl:template>
-	<!-- Lista jatkuu-->
-	<xsl:template name="listitem" match="w:p[w:pPr/w:numPr and count(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]) &gt; 0 ]">
-		<xsl:param name="reldocument" />
-		<xsl:param name="listintend"/>
-		<xsl:param name="thismargin">
-			<xsl:choose>
-				<xsl:when test="w:pPr/w:ind/@w:left"><xsl:value-of select="number(w:pPr/w:ind/@w:left)"/></xsl:when>
-				<xsl:otherwise><xsl:value-of select="number(0)"/></xsl:otherwise>
-			</xsl:choose>
-		</xsl:param>
-		<xsl:variable name="listid" select="w:pPr/w:numPr/w:numId/@w:val" />
-		<xsl:variable name="currentid" select="generate-id(current())" />
-		<xsl:variable name="nextlistid" select="following-sibling::w:p[w:pPr/w:numPr][not(w:pPr/w:numPr/w:numId/@w:val=$listid)][1]/w:pPr/w:numPr/w:numId/@w:val" />
-		<xsl:variable name="prevlistid" select="preceding-sibling::w:p[w:pPr/w:numPr][not(w:pPr/w:numPr/w:numId/@w:val=$listid)][1]/w:pPr/w:numPr/w:numId/@w:val" />
-		<li>
-			<xsl:attribute name="style">margin-left:<xsl:value-of select='number($thismargin) div 20'/>pt;
-				<xsl:if test="w:pPr/w:ind/@w:hanging">
-					text-indent:-<xsl:value-of select='number(w:pPr/w:ind/@w:hanging) div 20'/>pt;
-				</xsl:if>
-			</xsl:attribute>
-			<xsl:attribute name="jatkuvalista"><xsl:value-of select="$listintend"/></xsl:attribute>
-			<xsl:attribute name="id"><xsl:value-of select="generate-id(current())"/></xsl:attribute>
-			<xsl:attribute name="prevcount"><xsl:value-of select="count(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val])"/></xsl:attribute>
-			<xsl:call-template name="paragraph">
-				<xsl:with-param name="reldocument" select="$reldocument" />
-				<xsl:with-param name="listintend" select="$listintend + $thismargin" />
-			</xsl:call-template>
-			<xsl:apply-templates select="./following-sibling::w:p[
-														generate-id(./preceding-sibling::w:p[
-															w:pPr/w:numPr
-														][1])=$currentid
-													 and (not(w:pPr/w:numPr/w:numId/@w:val=$listid) and not(w:pPr/w:numPr/w:numId/@w:val=$prevlistid))
-													 and (./following-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=$listid] or
-														count(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=$nextlistid])  &gt; 0)]">
-				<xsl:with-param name="reldocument" select="$reldocument" />
-				<xsl:with-param name="listintend" select="$listintend + $thismargin" />
-			</xsl:apply-templates>
-		</li>
-	</xsl:template>
-	<!-- Listan ulkopuoliset kappaleet-->
-	<xsl:template name="paragraph" match="w:p[not(w:pPr/w:numPr)]">
-		<xsl:param name="reldocument" />
-		<xsl:param name="listintend"/>
-		<xsl:variable name="class">
-			<xsl:if test="count(w:pPr/w:pStyle)">
-				<xsl:value-of select="w:pPr/w:pStyle/@w:val"/>
-			</xsl:if>
-			<xsl:if test="local-name(..)='sdtContent'">
-				<xsl:value-of select="concat(' ',generate-id(../..))"/>
-			</xsl:if>
-		</xsl:variable>
-		<p class="{normalize-space($class)}" pid="{generate-id(.)}">
-			<xsl:apply-templates select="w:pPr|w:r">
-				<xsl:with-param name="scopeselector">p[pid='<xsl:value-of select="generate-id(.)"/>']</xsl:with-param>
-				<xsl:with-param name="listintend" select="$listintend" />
-				<xsl:with-param name="reldocument" select="$reldocument" />
-			</xsl:apply-templates>
-			<xsl:if test='count(w:r)=0'>
-				<br />
-			</xsl:if>
-		</p>
-	</xsl:template>
-	<!-- Lista alkaa-->
-	<xsl:template match="w:p[w:pPr/w:numPr and not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val])]">
-		<xsl:param name="reldocument" />
-		<xsl:param name="listid" select="w:pPr/w:numPr/w:numId/@w:val" />
-		<xsl:param name="listlevel" select="w:pPr/w:numPr/w:ilvl/@w:val" />
-		<xsl:param name="relid" select="document(resolve-uri('numbering.xml',base-uri()))/w:numbering/w:num[@w:numId=$listid]/w:abstractNumId/@w:val" />
-		<xsl:param name="thismargin">
-			<xsl:choose>
-				<xsl:when test="w:pPr/w:ind/@w:left"><xsl:value-of select="number(w:pPr/w:ind/@w:left)"/></xsl:when>
-				<xsl:otherwise><xsl:value-of select="number(0)"/></xsl:otherwise>
-			</xsl:choose>
-		</xsl:param>
-		<xsl:param name="thislistintend">
-			<xsl:choose>
-				<xsl:when test="document(resolve-uri('numbering.xml',base-uri()))/w:numbering/w:abstractNum[@w:abstractNumId=$relid]/w:lvl[@w:ilvl=$listlevel]/w:pPr/w:ind/@w:left"><xsl:value-of select="number(document(resolve-uri('numbering.xml',base-uri()))/w:numbering/w:abstractNum[@w:abstractNumId=$relid]/w:lvl[@w:ilvl=$listlevel]/w:pPr/w:ind/@w:left)"/></xsl:when>
-				<xsl:otherwise><xsl:value-of select="number(0)"/></xsl:otherwise>
-			</xsl:choose>
-		</xsl:param>
-		<xsl:variable name="elemid" select="generate-id(current())" />
-		<ul listmargin="{$thismargin}" listinend="{$thislistintend}">
-			<xsl:attribute name="class">level<xsl:value-of select="w:pPr/w:numPr/w:ilvl/@w:val"/> list<xsl:value-of select="w:pPr/w:numPr/w:numId/@w:val"/></xsl:attribute>
-			<xsl:call-template name="listitem">
-				<xsl:with-param name="listintend" select="number($thislistintend + $thismargin)" />
-			</xsl:call-template>
-			<xsl:apply-templates select="./following-sibling::w:p[(
-																		w:pPr/w:numPr and
-																		w:pPr/w:numPr/w:numId/@w:val=$listid)]">
-				<xsl:with-param name="reldocument" select="$reldocument" />
-				<xsl:with-param name="listintend" select="number($thislistintend)" />
-			</xsl:apply-templates>
-		</ul>
-	</xsl:template>
 	<xsl:template match="w:hyperlink">
 		<xsl:param name="reldocument" />
 		<a>
@@ -537,61 +408,20 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-	<xsl:template match="w:t">
-		<xsl:value-of select="."/>
-	</xsl:template>
+
 	<xsl:template match="w:instrText">
 	</xsl:template>
-	<xsl:template match="w:r">
+	<xsl:template match="w:ins">
 		<xsl:param name="reldocument" />
-		<xsl:variable name="lastend" select="count(./preceding-sibling::w:r/w:fldChar[@w:fldCharType='end']/../preceding-sibling::w:r)" />
-		<xsl:variable name="laststart" select="count(./preceding-sibling::w:r/w:fldChar[@w:fldCharType='separate']/../preceding-sibling::w:r)" />
-		<xsl:variable name="class">
-			<xsl:if test="count(w:rPr/w:rStyle)">
-				<xsl:value-of select="concat(' ',w:rPr/w:rStyle/@w:val)"/>
-			</xsl:if>
-			<xsl:if test="local-name(..)='sdtContent'">
-				<xsl:value-of select="concat(' ',generate-id(../..))"/>
-			</xsl:if>
-			<xsl:if test="count(../../w:pPr/w:rPr/w:rStyle)">
-				<xsl:value-of select="concat(' ',../../w:pPr/w:rPr/w:rStyle/@w:val)"/>
-			</xsl:if>
-		</xsl:variable>
-		<xsl:if test="$laststart = 0 or $lastend &gt; $laststart">
-			<xsl:choose>
-				<xsl:when test="count(w:br) and count(*)=1">
-					<xsl:apply-templates/>
-				</xsl:when>
-				<xsl:otherwise>
-					<span>
-						<xsl:attribute name="class" select="normalize-space($class)"/>
-						<xsl:apply-templates select="w:rPr|w:t|w:fldChar|w:drawing">
-							<xsl:with-param name="reldocument" select="$reldocument" />
-						</xsl:apply-templates>
-					</span>
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:if>
+		<xsl:param name="listintend" />
+		<ins>
+			<xsl:apply-templates select="w:pPr|w:r">
+				<xsl:with-param name="listintend" select="$listintend" />
+				<xsl:with-param name="reldocument" select="$reldocument" />
+			</xsl:apply-templates>
+		</ins>
 	</xsl:template>
-	<xsl:template match="w:fldChar[@w:fldCharType='begin']">
-		<xsl:variable name="fieldtype" select="normalize-space(../following-sibling::w:r[1]/w:instrText)" />
-		<xsl:variable name="textstart" select="count(../following-sibling::w:r/w:fldChar[@w:fldCharType='separate']/../preceding-sibling::w:r)" />
-		<xsl:variable name="textend" select="count(../following-sibling::w:r/w:fldChar[@w:fldCharType='end']/../preceding-sibling::w:r)" />
-		<xsl:variable name="type">
-			<xsl:choose>
-				<xsl:when test="$fieldtype='FORMCHECKBOX'">
-					<xsl:value-of select="'checkbox'" />
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of select="'text'" />
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:variable>
-		<xsl:variable name="placeholder">
-			<xsl:apply-templates select="../following-sibling::w:r[position() &gt; $textstart][position() &lt; $textend]/w:t" />
-		</xsl:variable>
-		<input type="{$type}" placeholder="{$placeholder}"/>
-	</xsl:template>
+	
 	<xsl:template match="pic:pic">
 		<xsl:param name="reldocument" />
 		<xsl:param name="position" />
