@@ -1,10 +1,11 @@
 # DOCX2HTML
 This project is aim to create perfect conversion from docx fileformat to html with XSLT stylesheet.
 
-Guidelines for projct:
+Guidelines for project:
 - Apperance is done with pure CSS3
 - Maintain HTML5 sematics (Tricky one with nested lists)
-- Do not lose information
+- Do not lose information shipped in document.
+- What you see in MS word, is what you see in HTML.
 
 So far following features are supported:
 
