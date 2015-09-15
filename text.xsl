@@ -22,7 +22,7 @@
 					font-kerning:auto;
 				</xsl:when>
 				<xsl:when test="local-name(.)='shd'">background-color:#<xsl:value-of select="@w:fill"/>;</xsl:when>
-				<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="@w:hAnsi|@w:ascii|@w:cs|@w:eastAsia"/>;</xsl:when>
+				<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="(@w:hAnsi|@w:ascii|@w:cs|@w:eastAsia)[1]"/>;</xsl:when>
 				<xsl:when test="local-name(.)='color'">color:#<xsl:value-of select="@w:val"/>;</xsl:when>
 				<xsl:when test="local-name(.)='sz' or local-name(.)='szCs'">
 					<xsl:choose>
@@ -39,6 +39,23 @@
 				<xsl:when test="local-name(.)='u'">text-decoration:underline;</xsl:when>
 			</xsl:choose>
 		</xsl:for-each>
+		<xsl:if test="../w:tab[not(./preceding-sibling::w:r)]">
+			padding-left:<xsl:value-of select="(count(../w:tab[not(./preceding-sibling::w:r)]) * number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val)) div 20"/>pt;
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="w:tab[./preceding-sibling::w:r]">
+		<xsl:variable name="tabstop" select="number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20"/>
+		<xsl:choose>
+			<xsl:when test="count(../../w:pPr/w:ind[@w:hanging]) and count(./preceding-sibling::w:r/w:tab)=0">
+				<br>
+					<xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute>
+				</br>
+				<br style="{'width:18pt;display:inline-block'}"/>
+			</xsl:when>
+			<xsl:otherwise>
+				<span><xsl:attribute name="style"><xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute></xsl:attribute> </span>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 	<xsl:template match="w:t">
 		<xsl:value-of select="."/>
@@ -57,7 +74,7 @@
 			</xsl:if>
 		</xsl:variable>
 		<xsl:variable name="thisid" select="generate-id(.)"/>
-		<xsl:variable name="nextdifferent" select="./following-sibling::*[not(local-name(.)=local-name(current()) and deep-equal(./w:rPr|./w:tab,current()/w:rPr|current()/w:tab))][1]"/>
+		<xsl:variable name="nextdifferent" select="./following-sibling::*[not(local-name(.)=local-name(current()) and not(w:tab) and deep-equal(./w:rPr,current()/w:rPr))][1]"/>
 		<span>
 			<xsl:attribute name="class" select="normalize-space($class)"/>
 			<xsl:attribute name="style">
@@ -67,9 +84,6 @@
 				<xsl:with-param name="reldocument" select="$reldocument" />
 			</xsl:apply-templates>
 			<xsl:if test="count(./following-sibling::*)!=0 and (generate-id(./following-sibling::*[1])!=generate-id($nextdifferent))">
-				<xsl:apply-templates select="./following-sibling::*/w:tab intersect $nextdifferent/preceding-sibling::*/w:tab">
-					<xsl:with-param name="reldocument" select="$reldocument" />
-				</xsl:apply-templates>
 				<xsl:apply-templates select="./following-sibling::*/w:t intersect $nextdifferent/preceding-sibling::*/w:t">
 					<xsl:with-param name="reldocument" select="$reldocument" />
 				</xsl:apply-templates>

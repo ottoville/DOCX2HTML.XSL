@@ -339,21 +339,6 @@
 			</xsl:if>	
 		</br>
 	</xsl:template>
-	<xsl:template match="w:tab">
-		<xsl:variable name="tabstop" select="number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20"/>
-		<xsl:choose>
-			<xsl:when test="count(../../w:pPr/w:ind[@w:hanging]) and count(./preceding-sibling::w:r/w:tab)=0">
-				<br>
-					<xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute>
-				</br>
-				<br style="{'width:18pt;display:inline-block'}"/>
-			</xsl:when>
-			<xsl:otherwise>
-				<span><xsl:attribute name="style"><xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute></xsl:attribute> </span>
-			</xsl:otherwise>
-		</xsl:choose>
-	</xsl:template>
-
 	<xsl:template match="w:instrText">
 	</xsl:template>
 	<xsl:template match="w:ins">
@@ -385,7 +370,6 @@
 		<xsl:variable name="dravingid" select="a:graphic/a:graphicData/pic:pic/pic:blipFill/a:blip/@r:embed"/>
 		<xsl:attribute name="style">width:<xsl:value-of select="number(wp:extent/@cx) div 360000"/>cm;height:<xsl:value-of select="number(wp:extent/@cy) div 360000"/>cm</xsl:attribute>
 		<xsl:attribute name="src"><xsl:value-of select="document($reldocument)/*/*[@Id=$dravingid]/@Target"/></xsl:attribute>
-
 	</xsl:template>
 	<xsl:template match="wp:inline">
 		<xsl:param name="reldocument" />		
