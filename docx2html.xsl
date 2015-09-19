@@ -238,7 +238,8 @@
 					</xsl:for-each>
 				</xsl:for-each>
 			</style>
-			<xsl:for-each select="*[w:pPr/w:sectPr or ./following-sibling::*[1][w:r/w:br/@w:type='page'][not(./following-sibling::*[1][w:pPr/w:sectPr])]]|w:sectPr">
+			<!-- Match always last paragraph of page -->
+			<xsl:for-each select="*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))]|w:sectPr">
 				<xsl:call-template name="sections">
 					<xsl:with-param name="reldocument" select="resolve-uri('_rels/document.xml.rels',base-uri())" />
 				</xsl:call-template>
@@ -262,7 +263,7 @@
 		<xsl:param name="reldocument" />
 		<!-- Either the page section, following section or document section-->
 		<xsl:variable name="sectionselector" select="w:pPr/w:sectPr|./following-sibling::*[w:pPr/w:sectPr][1]/w:pPr/w:sectPr|/w:document/w:body/w:sectPr"/>
-		<xsl:variable name="prevpage" select="preceding-sibling::*[w:pPr/w:sectPr or ./following-sibling::*[1][w:r/w:br/@w:type='page'][not(./following-sibling::*[1][w:pPr/w:sectPr])]][1]" />
+		<xsl:variable name="prevpage" select="preceding-sibling::*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))][1]" />
 		<xsl:variable name="thisid" select="generate-id(current())" />
 		<xsl:variable name="paddingtop" select="number($sectionselector[1]/w:pgMar/@w:top)" />
 		<xsl:variable name="paddingbottom" select="number($sectionselector[1]/w:pgMar/@w:bottom)" />
@@ -290,10 +291,10 @@
 						<xsl:with-param name="selector" select="preceding-sibling::*|current()" />
 					</xsl:call-template>
 				</xsl:when>
-				<xsl:when test="w:pPr/w:sectPr or ./following-sibling::*[1][w:r/w:br/@w:type='page']">
+				<xsl:when test="w:pPr/w:sectPr or w:r/w:br/@w:type='page'">
 					<xsl:call-template name="section">
 						<xsl:with-param name="reldocument" select="$reldocument" />
-						<xsl:with-param name="selector" select="./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevpage/preceding-sibling::*)]" />
+						<xsl:with-param name="selector" select="current()|./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevpage/preceding-sibling::*)]" />
 					</xsl:call-template>
 				</xsl:when>
 				<xsl:otherwise>

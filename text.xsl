@@ -22,7 +22,7 @@
 					font-kerning:auto;
 				</xsl:when>
 				<xsl:when test="local-name(.)='shd'">background-color:#<xsl:value-of select="@w:fill"/>;</xsl:when>
-				<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="(@w:hAnsi|@w:ascii|@w:cs|@w:eastAsia)[1]"/>;</xsl:when>
+				<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="@w:*[1]"/>;</xsl:when>
 				<xsl:when test="local-name(.)='color'">color:#<xsl:value-of select="@w:val"/>;</xsl:when>
 				<xsl:when test="local-name(.)='sz' or local-name(.)='szCs'">
 					<xsl:choose>
