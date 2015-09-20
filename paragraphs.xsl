@@ -70,12 +70,7 @@
 			</xsl:if>
 		</xsl:variable>
 		<p class="{normalize-space($class)}" pid="{$currentid}">
-			<xsl:apply-templates select="w:pPr|w:r[
-										(w:fldChar[@w:fldCharType='begin'] or 
-										(not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')))
-										and 
-											not(local-name(./preceding-sibling::*[1])='r' and not(w:tab) and deep-equal(./w:rPr|./w:fldChar, ./preceding-sibling::*[1]/w:rPr|./preceding-sibling::*[1]/w:fldChar))
-										]|w:ins|w:hyperlink|w:sdt">
+			<xsl:apply-templates select="w:pPr|w:r[(w:tab or not(./following-sibling::w:r[w:tab]))]|w:ins|w:hyperlink|w:sdt">
 				<xsl:with-param name="scopeselector">p[pid='<xsl:value-of select="$currentid"/>']</xsl:with-param>
 				<xsl:with-param name="listintend" select="$listintend" />
 				<xsl:with-param name="reldocument" select="$reldocument" />

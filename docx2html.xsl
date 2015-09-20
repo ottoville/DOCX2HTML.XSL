@@ -202,7 +202,7 @@
 				ul>li>p:first-child {display:inline;}
 				ul.outsidee { list-style-position:outside} ul.outsidee>li>p:first-child { text-indent:0 !important;display:block}
 				ul>li>p:not(:first-child) { text-indent:0 }
-				ul, li { margin:0;padding:0 } li p {} input[type="text"] {height:18px} p {margin:0}
+				ul, li { margin:0;padding:0 } li p {} input[type="text"] {height:18px} input[type="checkbox"] { margin:0 } p {margin:0}
 				article>* {display:none} article>section {display:block; margin-top:0.1cm;border-width:1px;border-style:solid;}
 				<xsl:value-of select="base-uri(.)"/>
 				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style">
@@ -245,6 +245,20 @@
 				</xsl:call-template>
 			</xsl:for-each>
 		</article>
+		<script>
+			<xsl:text>
+				<![CDATA[
+				var tabs=document.getElementsByClassName('tab');
+				for(t=0;t<tabs.length;t++) {
+					var tabinterval=parseFloat(tabs[t].style.minWidth);
+					var realwidth=parseFloat(window.getComputedStyle(tabs[t]).width)
+					if(realwidth>tabinterval) {
+						tabs[t].style.width=Math.ceil(realwidth/tabinterval)*tabinterval+'px';	
+					}	
+				}
+				]]>
+			</xsl:text>
+		</script>
 	</xsl:template>
 	<xsl:template name="section">
 		<xsl:param name="reldocument" />

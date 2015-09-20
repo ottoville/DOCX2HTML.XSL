@@ -39,28 +39,53 @@
 				<xsl:when test="local-name(.)='u'">text-decoration:underline;</xsl:when>
 			</xsl:choose>
 		</xsl:for-each>
-		<xsl:if test="../w:tab[not(./preceding-sibling::w:r)]">
-			padding-left:<xsl:value-of select="(count(../w:tab[not(./preceding-sibling::w:r)]) * number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val)) div 20"/>pt;
-		</xsl:if>
-	</xsl:template>
-	<xsl:template match="w:tab[./preceding-sibling::w:r]">
-		<xsl:variable name="tabstop" select="number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20"/>
-		<xsl:choose>
-			<xsl:when test="count(../../w:pPr/w:ind[@w:hanging]) and count(./preceding-sibling::w:r/w:tab)=0">
-				<br>
-					<xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute>
-				</br>
-				<br style="{'width:18pt;display:inline-block'}"/>
-			</xsl:when>
-			<xsl:otherwise>
-				<span><xsl:attribute name="style"><xsl:attribute name="style">width:<xsl:value-of select="$tabstop"/>pt;display:inline-block</xsl:attribute></xsl:attribute> </span>
-			</xsl:otherwise>
-		</xsl:choose>
 	</xsl:template>
 	<xsl:template match="w:t">
 		<xsl:value-of select="."/>
 	</xsl:template>
-	<xsl:template name="text" match="w:r">
+	<xsl:template match="w:r[w:tab]">
+		<xsl:param name="reldocument" />
+		<xsl:variable name="prevtab" select="preceding-sibling::*[w:tab][1]" />
+		<xsl:variable name="tabstop" select="(number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20) * (4 div 3) "/>
+		<span>
+			<xsl:attribute name="class">tab</xsl:attribute>
+			<xsl:attribute name="style">
+				display:inline-block;
+				min-width:<xsl:value-of select="$tabstop"/>px;
+				text-indent:0;
+			</xsl:attribute>
+			<xsl:choose>
+				<xsl:when test="not($prevtab)">
+					<xsl:apply-templates select="./preceding-sibling::w:r[(w:fldChar[@w:fldCharType='begin'] or 
+										(not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')))]">
+						<xsl:with-param name="reldocument" select="$reldocument" />
+					</xsl:apply-templates>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:for-each select="$prevtab">
+						<xsl:call-template name="text">
+							<xsl:with-param name="reldocument" select="$reldocument" />
+						</xsl:call-template>
+					</xsl:for-each>
+					<xsl:apply-templates select="./preceding-sibling::*[(count(./preceding-sibling::*) &gt; count($prevtab/preceding-sibling::*)) and (w:fldChar[@w:fldCharType='begin'] or 
+										(not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')))]">
+						<xsl:with-param name="reldocument" select="$reldocument" />
+					</xsl:apply-templates>
+				</xsl:otherwise>
+			</xsl:choose>
+		</span>
+		<xsl:if test="../w:pPr/w:ind/@w:hanging and not(./preceding-sibling::w:r[w:tab])">
+			<br />
+		</xsl:if>
+		<xsl:if test="not(./following-sibling::w:r[w:tab])">
+			<xsl:call-template name="text">
+				<xsl:with-param name="reldocument" select="$reldocument" />
+			</xsl:call-template>			
+		</xsl:if>
+	</xsl:template>
+	<xsl:template name="fieldtext" match="w:r[./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate']">
+	</xsl:template>
+	<xsl:template name="text" match="w:r[not(w:tab) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')]">
 		<xsl:param name="reldocument" />
 		<xsl:variable name="class">
 			<xsl:if test="count(w:rPr/w:rStyle)">
@@ -73,26 +98,14 @@
 				<xsl:value-of select="concat(' ',../../w:pPr/w:rPr/w:rStyle/@w:val)"/>
 			</xsl:if>
 		</xsl:variable>
-		<xsl:variable name="thisid" select="generate-id(.)"/>
-		<xsl:variable name="nextdifferent" select="./following-sibling::*[not(local-name(.)=local-name(current()) and not(w:tab) and deep-equal(./w:rPr,current()/w:rPr))][1]"/>
 		<span>
 			<xsl:attribute name="class" select="normalize-space($class)"/>
 			<xsl:attribute name="style">
 				<xsl:apply-templates select="w:rPr"/>
 			</xsl:attribute>
-			<xsl:apply-templates select="w:t|w:tab|w:drawing">
+			<xsl:apply-templates select="w:t|w:drawing">
 				<xsl:with-param name="reldocument" select="$reldocument" />
 			</xsl:apply-templates>
-			<xsl:if test="count(./following-sibling::*)!=0 and (generate-id(./following-sibling::*[1])!=generate-id($nextdifferent))">
-				<xsl:apply-templates select="./following-sibling::*/w:t intersect $nextdifferent/preceding-sibling::*/w:t">
-					<xsl:with-param name="reldocument" select="$reldocument" />
-				</xsl:apply-templates>
-			</xsl:if>
-			<xsl:if test="count(./following-sibling::*)!=0 and count($nextdifferent)=0">
-				<xsl:apply-templates select="./following-sibling::*/w:tab|./following-sibling::*/w:t">
-					<xsl:with-param name="reldocument" select="$reldocument" />
-				</xsl:apply-templates>
-			</xsl:if>
 		</span>
 	</xsl:template>
 	<xsl:template match="w:r[w:fldChar[@w:fldCharType='begin']]">
@@ -129,9 +142,11 @@
 					<xsl:attribute name="style">
 							<xsl:apply-templates select="w:rPr"/>
 					</xsl:attribute>
-					<xsl:apply-templates select="$text">
-						<xsl:with-param name="reldocument" select="$reldocument" />
-					</xsl:apply-templates>
+					<xsl:for-each select="$text">
+						<xsl:call-template name="text">
+							<xsl:with-param name="reldocument" select="$reldocument" />
+						</xsl:call-template>
+					</xsl:for-each>
 				</a>
 			</xsl:when>
 			<xsl:otherwise>
