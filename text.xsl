@@ -11,7 +11,8 @@
 	xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
 	xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
 	xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps mc"
     version="2.0">
 	<xsl:template match="w:rPr" name="spanstyle">
 		<xsl:if test="../w:t/@xml:space='preserve'">white-space:pre-wrap;</xsl:if>
@@ -103,7 +104,7 @@
 			<xsl:attribute name="style">
 				<xsl:apply-templates select="w:rPr"/>
 			</xsl:attribute>
-			<xsl:apply-templates select="w:t|w:drawing">
+			<xsl:apply-templates select="w:t|w:drawing|mc:AlternateContent">
 				<xsl:with-param name="reldocument" select="$reldocument" />
 			</xsl:apply-templates>
 		</span>

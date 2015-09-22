@@ -11,7 +11,8 @@
 	xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
 	xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
 	xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps mc"
     version="2.0">
 <!-- List continue-->
 	<xsl:template name="listitem" match="w:p[w:pPr/w:numPr and count(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]) &gt; 0 ]">

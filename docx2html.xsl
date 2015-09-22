@@ -11,7 +11,8 @@
 	xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
 	xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
 	xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps mc"
     version="2.0">
 	<!-- docx2html.xsl
 		Project started by Otto-Ville Lamminpää
@@ -21,6 +22,7 @@
 	<xsl:import href="paragraphs.xsl"/>
 	<xsl:import href="text.xsl"/>
 	<xsl:import href="table.xsl"/>
+	<xsl:import href="images.xsl"/>
 	<xsl:template name="borders">
 		<xsl:for-each select="*">
 			<xsl:variable name="border-style">
@@ -194,6 +196,8 @@
 		</xsl:choose>
 	</xsl:template>
 	<xsl:template match="w:body">
+		<xsl:variable name="themefile" select="document(resolve-uri(document(resolve-uri('_rels/document.xml.rels',base-uri()))/*/*[@Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme']/@Target,base-uri()))"/>
+
 		<meta name="{'generator'}" content="{'docx2html.xsl https://github.com/ottoville/DOCX2HTML.XSLT'}"/>
 		<article>
 			<style>
@@ -236,6 +240,17 @@
 						}
 						section ul.level<xsl:value-of select="@w:ilvl"/>.list<xsl:value-of select="$listid"/>&gt;li&gt;p:first-child&gt;span { <xsl:apply-templates select="w:rPr" /> }
 					</xsl:for-each>
+				</xsl:for-each>
+				<xsl:for-each select="$themefile/a:theme/a:themeElements/a:clrScheme/*">
+					.<xsl:value-of select="local-name(.)"/> {
+						<xsl:for-each select="./*">
+							<xsl:choose>
+								<xsl:when test="local-name(.)='srgbClr'">
+									fill:#<xsl:value-of select="@val"/>;
+								</xsl:when>
+							</xsl:choose>
+						</xsl:for-each>
+					}
 				</xsl:for-each>
 			</style>
 			<!-- Match always last paragraph of page -->
@@ -291,7 +306,7 @@
 			</xsl:attribute>
 			<xsl:choose>
 				<xsl:when test="not($prevpage)"> <!--first page or document with one page -->
-					<xsl:if test='count($sectionselector[1]/w:headerReference[@w:type="first"])'>
+					<xsl:if test='$sectionselector[1]/w:headerReference[@w:type="first"]'>
 						<header>
 							<xsl:variable name="hyperlinkid" select='$sectionselector[1]/w:headerReference[@w:type="first"]/@r:id'/>
 							<xsl:attribute name="id"><xsl:value-of select="$hyperlinkid" /></xsl:attribute>
@@ -365,54 +380,5 @@
 				<xsl:with-param name="reldocument" select="$reldocument" />
 			</xsl:apply-templates>
 		</ins>
-	</xsl:template>
-	
-	<xsl:template match="pic:pic">
-		<xsl:param name="reldocument" />
-		<xsl:param name="position" />
-		<xsl:variable name="dravingid" select="pic:blipFill/a:blip/@r:embed"/>
-		<img>
-			<xsl:attribute name="style">display:inline;width:<xsl:value-of select="number($position/@cx) div 360000"/>cm;height:<xsl:value-of select="number($position/@cy) div 360000"/>cm</xsl:attribute>
-			<xsl:attribute name="src"><xsl:value-of select="resolve-uri(document($reldocument)/*/*[@Id=$dravingid]/@Target,base-uri())"/></xsl:attribute>
-		</img>
-	</xsl:template>
-	<xsl:template match="wps:wsp">
-		<svg>
-		</svg>
-	</xsl:template>
-	<xsl:template match="wp:anchor">
-		<xsl:param name="reldocument" />
-		<xsl:variable name="dravingid" select="a:graphic/a:graphicData/pic:pic/pic:blipFill/a:blip/@r:embed"/>
-		<xsl:attribute name="style">width:<xsl:value-of select="number(wp:extent/@cx) div 360000"/>cm;height:<xsl:value-of select="number(wp:extent/@cy) div 360000"/>cm</xsl:attribute>
-		<xsl:attribute name="src"><xsl:value-of select="document($reldocument)/*/*[@Id=$dravingid]/@Target"/></xsl:attribute>
-	</xsl:template>
-	<xsl:template match="wp:inline">
-		<xsl:param name="reldocument" />		
-		<xsl:apply-templates>
-			<xsl:with-param name="reldocument" select="$reldocument" />
-			<xsl:with-param name="position" select="wp:extent" />
-		</xsl:apply-templates>
-	</xsl:template>
-	<xsl:template match="a:graphic">
-		<xsl:param name="reldocument" />		
-		<xsl:param name="position" />		
-		<xsl:apply-templates>
-			<xsl:with-param name="reldocument" select="$reldocument" />
-			<xsl:with-param name="position" select="$position" />
-		</xsl:apply-templates>
-	</xsl:template>
-	<xsl:template match="a:graphicData">
-		<xsl:param name="reldocument" />		
-		<xsl:param name="position" />		
-		<xsl:apply-templates>
-			<xsl:with-param name="reldocument" select="$reldocument" />
-			<xsl:with-param name="position" select="$position" />
-		</xsl:apply-templates>
-	</xsl:template>
-	<xsl:template match="w:drawing">
-		<xsl:param name="reldocument" />
-		<xsl:apply-templates>
-			<xsl:with-param name="reldocument" select="$reldocument" />
-		</xsl:apply-templates>
 	</xsl:template>
 </xsl:stylesheet>
