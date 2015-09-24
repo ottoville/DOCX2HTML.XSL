@@ -20,7 +20,18 @@
 		<xsl:param name="size" />
 		<xsl:variable name="dravingid" select="pic:blipFill/a:blip/@r:embed"/>
 		<img>
-			<xsl:attribute name="style">display:inline;width:<xsl:value-of select="number($size/@cx) div 360000"/>cm;height:<xsl:value-of select="number($size/@cy) div 360000"/>cm</xsl:attribute>
+			<xsl:attribute name="style">
+				<xsl:choose>
+					<xsl:when test="local-name(../../..)='anchor'">
+						float:left;position:absolute;
+						top:<xsl:apply-templates select="../../../wp:positionV/wp:posOffset"/>;
+						left:<xsl:apply-templates select="../../../wp:positionH/wp:posOffset"/>;
+					</xsl:when>
+					<xsl:otherwise>
+						display:inline;
+					</xsl:otherwise>
+				</xsl:choose>
+			width:<xsl:value-of select="number($size/@cx) div 360000"/>cm;height:<xsl:value-of select="number($size/@cy) div 360000"/>cm</xsl:attribute>
 			<xsl:attribute name="src"><xsl:value-of select="resolve-uri(document($reldocument)/*/*[@Id=$dravingid]/@Target,base-uri())"/></xsl:attribute>
 		</img>
 	</xsl:template>
@@ -36,12 +47,25 @@
 			<xsl:with-param name="reldocument" select="$reldocument" />
 		</xsl:apply-templates>
 	</xsl:template>
+	<xsl:template match="wp:posOffset">
+		<xsl:value-of select="((number(text()) div 91440)*8)*(4 div 3)"/>px
+	</xsl:template>
 	<xsl:template match="wps:wsp">
 		<xsl:param name="reldocument" />
 		<xsl:param name="size" />
 		<svg:svg>
 			<xsl:attribute name="style">
-				float:left;width:<xsl:value-of select="((number($size/@cx) div 91440) * 8) *(4 div 3)"/>px;height:<xsl:value-of select="((number($size/@cy) div 91440) * 8) *(4 div 3)"/>px;
+				<xsl:choose>
+					<xsl:when test="local-name(../../..)='anchor'">
+						float:left;position:absolute;
+						top:<xsl:apply-templates select="../../../wp:positionV/wp:posOffset"/>;
+						left:<xsl:apply-templates select="../../../wp:positionH/wp:posOffset"/>;
+					</xsl:when>
+					<xsl:otherwise>
+						display:inline;
+					</xsl:otherwise>
+				</xsl:choose>
+				width:<xsl:value-of select="((number($size/@cx) div 91440) * 8) *(4 div 3)"/>px;height:<xsl:value-of select="((number($size/@cy) div 91440) * 8) *(4 div 3)"/>px;
 			</xsl:attribute>
 			<xsl:apply-templates select="wps:style">
 				<xsl:with-param name="reldocument" select="$reldocument" />
@@ -154,7 +178,7 @@
 	</xsl:template>
 	<xsl:template match="w:drawing">
 		<xsl:param name="reldocument" />
-		<xsl:apply-templates select="wp:anchor|wp:inline">
+		<xsl:apply-templates select="wp:anchor[wp:positionH/@relativeFrom!='page' and wp:positionV/@relativeFrom!='page']|wp:inline">
 			<xsl:with-param name="reldocument" select="$reldocument" />
 		</xsl:apply-templates>
 	</xsl:template>
