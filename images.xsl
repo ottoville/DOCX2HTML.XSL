@@ -26,6 +26,7 @@
 						float:left;position:absolute;
 						top:<xsl:apply-templates select="../../../wp:positionV/wp:posOffset"/>;
 						left:<xsl:apply-templates select="../../../wp:positionH/wp:posOffset"/>;
+						z-index:<xsl:value-of select="../../../@relativeHeight"/>;
 					</xsl:when>
 					<xsl:otherwise>
 						display:inline;
@@ -60,11 +61,15 @@
 						float:left;position:absolute;
 						top:<xsl:apply-templates select="../../../wp:positionV/wp:posOffset"/>;
 						left:<xsl:apply-templates select="../../../wp:positionH/wp:posOffset"/>;
+						z-index:<xsl:value-of select="../../../@relativeHeight"/>;
 					</xsl:when>
 					<xsl:otherwise>
 						display:inline;
 					</xsl:otherwise>
 				</xsl:choose>
+				<xsl:if test="wps:spPr/a:xfrm/@rot">
+					transform:rotate(<xsl:value-of select="number(wps:spPr/a:xfrm/@rot) div 60000"/>deg);
+				</xsl:if>
 				width:<xsl:value-of select="((number($size/@cx) div 91440) * 8) *(4 div 3)"/>px;height:<xsl:value-of select="((number($size/@cy) div 91440) * 8) *(4 div 3)"/>px;
 			</xsl:attribute>
 			<xsl:apply-templates select="wps:style">
@@ -99,14 +104,50 @@
 			</xsl:choose>
 		</xsl:for-each>
 	</xsl:template>
+	<xsl:template name="svgElement">
+		<xsl:attribute name="class">
+			<xsl:call-template name="svgclasses" />
+		</xsl:attribute>
+		<xsl:attribute name="style">
+			<xsl:call-template name="svgstyles" />
+		</xsl:attribute>
+	</xsl:template>
+	<xsl:template name="svgstyles">
+		<xsl:for-each select="../*">
+			<xsl:choose>
+				<xsl:when test="local-name(.)='solidFill'">
+					fill:#<xsl:value-of select="a:srgbClr/@val" />;
+				</xsl:when>
+			</xsl:choose>
+		</xsl:for-each>
+	</xsl:template>
 	<xsl:template match="a:prstGeom[@prst='ellipse']">
 		<xsl:variable name="x" select="((number(../a:xfrm/a:ext/@cx) div 91440) * 8) *(4 div 3) div 2" />
 		<xsl:variable name="y" select="((number(../a:xfrm/a:ext/@cy) div 91440) * 8) *(4 div 3) div 2" />
 		<svg:ellipse cy="{$y + number(../a:xfrm/a:off/@y)}" cx="{$x + number(../a:xfrm/a:off/@x)}" rx="{$x}" ry="{$y}">
-			<xsl:attribute name="class">
-				<xsl:call-template name="svgclasses" />
-			</xsl:attribute>
+			<xsl:call-template name="svgElement"/>
 		</svg:ellipse>
+	</xsl:template>
+	<xsl:template match="a:prstGeom[@prst='corner']">
+		<xsl:variable name="x" select="((number(../a:xfrm/a:ext/@cx) div 91440) * 8) *(4 div 3)" />
+		<xsl:variable name="y" select="((number(../a:xfrm/a:ext/@cy) div 91440) * 8) *(4 div 3)" />
+		<xsl:variable name="p1" select="concat(0,',',0)" />
+		<xsl:variable name="p2" select="concat($x div 2,',',0)" />
+		<xsl:variable name="p3" select="concat($x div 2,',',$y div 2)" />
+		<xsl:variable name="p4" select="concat($x,',',$y div 2)" />
+		<xsl:variable name="p5" select="concat($x,',',$y)" />
+		<xsl:variable name="p6" select="concat(0,',',$y)" />
+		<!--
+		0,0
+		0.5,0
+		0.5,0.5
+		1,0.5
+		1,1
+		0,1
+		-->
+		<svg:polygon points="{concat($p1,' ',$p2,' ',$p3,' ', $p4,' ',$p5,' ',$p6)}">
+			<xsl:call-template name="svgElement"/>
+		</svg:polygon>
 	</xsl:template>
 	<xsl:template match="a:prstGeom[@prst='triangle']">
 		<xsl:variable name="x" select="((number(../a:xfrm/a:ext/@cx) div 91440) * 8) *(4 div 3)" />
@@ -118,9 +159,7 @@
 		0.5,0	1,1		0,1
 		-->
 		<svg:polygon points="{concat($p1,' ',$p2,' ',$p3)}">
-			<xsl:attribute name="class">
-				<xsl:call-template name="svgclasses" />
-			</xsl:attribute>
+			<xsl:call-template name="svgElement"/>
 		</svg:polygon>
 	</xsl:template>
 	<xsl:template match="a:prstGeom[@prst='hexagon']">
@@ -141,9 +180,7 @@
 		<xsl:variable name="p6" select="'0,2'" />
 		-->
 		<svg:polygon points="{concat($p1,' ',$p2,' ',$p3,' ', $p4,' ',$p5,' ',$p6)}">
-			<xsl:attribute name="class">
-				<xsl:call-template name="svgclasses" />
-			</xsl:attribute>
+			<xsl:call-template name="svgElement"/>
 		</svg:polygon>
 	</xsl:template>
 	<xsl:template match="wp:anchor">
