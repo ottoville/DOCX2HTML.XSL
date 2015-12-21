@@ -195,6 +195,7 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
+
 	<xsl:template match="w:body">
 		<xsl:variable name="themefile" select="document(resolve-uri(document(resolve-uri('_rels/document.xml.rels',base-uri()))/*/*[@Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme']/@Target,base-uri()))"/>
 
@@ -242,11 +243,21 @@
 					</xsl:for-each>
 				</xsl:for-each>
 				<xsl:for-each select="$themefile/a:theme/a:themeElements/a:clrScheme/*">
-					.<xsl:value-of select="local-name(.)"/> {
+					.<xsl:value-of select="local-name(.)"/>fill {
 						<xsl:for-each select="./*">
 							<xsl:choose>
 								<xsl:when test="local-name(.)='srgbClr'">
 									fill:#<xsl:value-of select="@val"/>;
+									fillr:<xsl:value-of select="substring(@val,0,2)"/>,<xsl:value-of select="substring(@val,3,2)"/>,<xsl:value-of select="substring(@val,5)"/>
+								</xsl:when>
+							</xsl:choose>
+						</xsl:for-each>
+					}
+					.<xsl:value-of select="local-name(.)"/>border {
+						<xsl:for-each select="./*">
+							<xsl:choose>
+								<xsl:when test="local-name(.)='srgbClr'">
+									stroke:#<xsl:value-of select="@val"/>;
 								</xsl:when>
 							</xsl:choose>
 						</xsl:for-each>
@@ -257,6 +268,7 @@
 			<xsl:for-each select="*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))]|w:sectPr">
 				<xsl:call-template name="sections">
 					<xsl:with-param name="reldocument" select="resolve-uri('_rels/document.xml.rels',base-uri())" />
+					<xsl:with-param name="themefile" select="$themefile" />
 				</xsl:call-template>
 			</xsl:for-each>
 		</article>
@@ -277,6 +289,7 @@
 	</xsl:template>
 	<xsl:template name="section">
 		<xsl:param name="reldocument" />
+		<xsl:param name="themefile" />
 		<xsl:param name="selector" />
 		<xsl:for-each select="$selector">
 			<xsl:variable name="listid" select="w:pPr/w:numPr/w:numId/@w:val" />
@@ -284,12 +297,14 @@
 			<xsl:if test="not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=$nextlistid]) and (not(w:pPr/w:numPr) or not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]))">
 				<xsl:apply-templates select="current()">
 					<xsl:with-param name="reldocument" select="$reldocument" />
+					<xsl:with-param name="themefile" select="$themefile" />
 				</xsl:apply-templates>
 			</xsl:if>
 		</xsl:for-each>
 	</xsl:template>
 	<xsl:template name="sections"><!-- Always the last page of document -->
 		<xsl:param name="reldocument" />
+		<xsl:param name="themefile" />
 		<!-- Either the page section, following section or document section-->
 		<xsl:variable name="sectionselector" select="w:pPr/w:sectPr|./following-sibling::*[w:pPr/w:sectPr][1]/w:pPr/w:sectPr|/w:document/w:body/w:sectPr"/>
 		<xsl:variable name="prevpage" select="preceding-sibling::*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))][1]" />
@@ -317,18 +332,21 @@
 					</xsl:if>
 					<xsl:call-template name="section">
 						<xsl:with-param name="reldocument" select="$reldocument" />
+						<xsl:with-param name="themefile" select="$themefile" />
 						<xsl:with-param name="selector" select="preceding-sibling::*|current()" />
 					</xsl:call-template>
 				</xsl:when>
 				<xsl:when test="w:pPr/w:sectPr or w:r/w:br/@w:type='page'">
 					<xsl:call-template name="section">
 						<xsl:with-param name="reldocument" select="$reldocument" />
+						<xsl:with-param name="themefile" select="$themefile" />
 						<xsl:with-param name="selector" select="current()|./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevpage/preceding-sibling::*)]" />
 					</xsl:call-template>
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:call-template name="section">
 						<xsl:with-param name="reldocument" select="$reldocument" />
+						<xsl:with-param name="themefile" select="$themefile" />
 						<xsl:with-param name="selector" select="$prevpage/following-sibling::*" />
 					</xsl:call-template>
 				</xsl:otherwise>

@@ -60,6 +60,7 @@
 	</xsl:template>
 	<xsl:template name="paragraph" match="w:p[not(w:pPr/w:numPr)]">
 		<xsl:param name="reldocument" />
+		<xsl:param name="themefile"/>
 		<xsl:param name="listintend"/>
 		<xsl:variable name="currentid" select="generate-id(current())" />
 		<xsl:variable name="class">
@@ -73,12 +74,14 @@
 		<xsl:apply-templates select="w:r/mc:AlternateContent/mc:Choice/w:drawing/wp:anchor[wp:positionH/@relativeFrom='page' or wp:positionV/@relativeFrom='page']">
 			<xsl:with-param name="listintend" select="$listintend" />
 			<xsl:with-param name="reldocument" select="$reldocument" />
+			<xsl:with-param name="themefile" select="$themefile" />
 		</xsl:apply-templates>
 		<p class="{normalize-space($class)}" pid="{$currentid}">
 			<xsl:apply-templates select="w:pPr|w:r[(w:tab or not(./following-sibling::w:r[w:tab]))]|w:ins|w:hyperlink|w:sdt">
 				<xsl:with-param name="scopeselector">p[pid='<xsl:value-of select="$currentid"/>']</xsl:with-param>
 				<xsl:with-param name="listintend" select="$listintend" />
 				<xsl:with-param name="reldocument" select="$reldocument" />
+				<xsl:with-param name="themefile" select="$themefile" />
 			</xsl:apply-templates>
 			<xsl:if test='count(w:r)=0'>
 				<br />

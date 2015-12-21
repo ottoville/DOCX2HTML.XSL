@@ -42,6 +42,7 @@
 		</xsl:for-each>
 	</xsl:template>
 	<xsl:template match="w:t">
+		<xsl:param name="themefile" />
 		<xsl:value-of select="."/>
 	</xsl:template>
 	<xsl:template match="w:r[w:tab]">
@@ -88,6 +89,7 @@
 	</xsl:template>
 	<xsl:template name="text" match="w:r[not(w:tab) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')]">
 		<xsl:param name="reldocument" />
+		<xsl:param name="themefile" />
 		<xsl:variable name="class">
 			<xsl:if test="count(w:rPr/w:rStyle)">
 				<xsl:value-of select="concat(' ',w:rPr/w:rStyle/@w:val)"/>
@@ -106,6 +108,7 @@
 			</xsl:attribute>
 			<xsl:apply-templates select="w:t|w:drawing|mc:AlternateContent">
 				<xsl:with-param name="reldocument" select="$reldocument" />
+				<xsl:with-param name="themefile" select="$themefile" />
 			</xsl:apply-templates>
 		</span>
 	</xsl:template>
