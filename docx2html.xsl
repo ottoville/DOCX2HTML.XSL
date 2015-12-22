@@ -248,7 +248,6 @@
 							<xsl:choose>
 								<xsl:when test="local-name(.)='srgbClr'">
 									fill:#<xsl:value-of select="@val"/>;
-									fillr:<xsl:value-of select="substring(@val,0,2)"/>,<xsl:value-of select="substring(@val,3,2)"/>,<xsl:value-of select="substring(@val,5)"/>
 								</xsl:when>
 							</xsl:choose>
 						</xsl:for-each>

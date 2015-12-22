@@ -13,6 +13,7 @@
 	xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:v="urn:schemas-microsoft-com:vml"
     exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps mc svg"
     version="2.0">
 	<xsl:template match="pic:pic">
@@ -409,5 +410,18 @@
 			<xsl:with-param name="reldocument" select="$reldocument" />
 			<xsl:with-param name="themefile" select="$themefile" />
 		</xsl:apply-templates>
+	</xsl:template>
+	<xsl:template match="v:roundrect|v:shape">
+		<xsl:param name="reldocument" />
+		<xsl:param name="themefile" />
+		<div>
+			<xsl:attribute name="style">
+				<xsl:value-of select="@style"/>
+			</xsl:attribute>
+			<xsl:apply-templates select="v:textbox">
+				<xsl:with-param name="reldocument" select="$reldocument" />
+				<xsl:with-param name="themefile" select="$themefile" />
+			</xsl:apply-templates>
+		</div>
 	</xsl:template>
 </xsl:stylesheet>

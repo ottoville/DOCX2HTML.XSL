@@ -106,7 +106,7 @@
 			<xsl:attribute name="style">
 				<xsl:apply-templates select="w:rPr"/>
 			</xsl:attribute>
-			<xsl:apply-templates select="w:t|w:drawing|mc:AlternateContent">
+			<xsl:apply-templates select="w:t|w:pict|w:drawing|mc:AlternateContent">
 				<xsl:with-param name="reldocument" select="$reldocument" />
 				<xsl:with-param name="themefile" select="$themefile" />
 			</xsl:apply-templates>
