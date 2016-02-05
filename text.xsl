@@ -22,16 +22,16 @@
 				<xsl:when test='local-name(.)="kern" and number(../w:sz/@w:val) &gt;= number(@w:val)'>
 					font-kerning:auto;
 				</xsl:when>
-				<xsl:when test="local-name(.)='shd'">background-color:#<xsl:value-of select="@w:fill"/>;</xsl:when>
-				<xsl:when test="local-name(.)='rFonts'">font-family:<xsl:value-of select="@w:*[1]"/>;</xsl:when>
-				<xsl:when test="local-name(.)='color'">color:#<xsl:value-of select="@w:val"/>;</xsl:when>
+				<xsl:when test="local-name(.)='shd'"><xsl:value-of select="concat('background-color:#',@w:fill,';')"/></xsl:when>
+				<xsl:when test="local-name(.)='rFonts'"><xsl:value-of select="concat('font-family:',@w:*[1],';')"/></xsl:when>
+				<xsl:when test="local-name(.)='color'"><xsl:value-of select="concat('color:#',@w:val,';')"/></xsl:when>
 				<xsl:when test="local-name(.)='sz' or local-name(.)='szCs'">
 					<xsl:choose>
 						<xsl:when test='number(@w:val) &gt; 0'>
-							font-size:<xsl:value-of select='number(@w:val) div 2'/>pt;
+							<xsl:value-of select="concat('font-size:',number(@w:val) div 2,'pt;')"/>
 						</xsl:when>
 						<xsl:otherwise>
-							font-size:<xsl:value-of select="0"/>;
+							font-size:0;
 						</xsl:otherwise>
 					</xsl:choose>
 				</xsl:when>

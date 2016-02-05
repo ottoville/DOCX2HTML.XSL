@@ -181,7 +181,7 @@
 					<xsl:value-of select="$cssrules"/>
 				</xsl:attribute>
 				<style>
-					<xsl:attribute name="scoped"/>
+					<!--<xsl:attribute name="scoped"/>-->
 					<xsl:choose>
 						<xsl:when test="local-name(.)='sdtPr'">
 							<xsl:value-of select="$scopeselector"/> { <xsl:apply-templates select="w:rPr" /> }
@@ -201,6 +201,14 @@
 
 		<meta name="{'generator'}" content="{'docx2html.xsl https://github.com/ottoville/DOCX2HTML.XSLT'}"/>
 		<article>
+			<!-- Match always last paragraph of page -->
+			<xsl:for-each select="*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))]|w:sectPr">
+				<xsl:call-template name="sections">
+					<xsl:with-param name="reldocument" select="resolve-uri('_rels/document.xml.rels',base-uri())" />
+					<xsl:with-param name="themefile" select="$themefile" />
+				</xsl:call-template>
+			</xsl:for-each>
+		</article>
 			<style>
 				ins {text-decoration:none;}
 				ul {list-style-position:inside}
@@ -210,16 +218,12 @@
 				ul, li { margin:0;padding:0 } li p {} input[type="text"] {height:18px} input[type="checkbox"] { margin:0 } p {margin:0;position:relative}
 				article>* {display:none} article>section {display:block; margin-top:0.1cm;border-width:1px;border-style:solid;position:relative;}
 				<xsl:value-of select="base-uri(.)"/>
-				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style">
-					<xsl:choose>
-						<xsl:when test="@w:type='paragraph'">
-							p.<xsl:value-of select="./@w:styleId"/> { <xsl:apply-templates select="w:pPr" /> }
-							p.<xsl:value-of select="./@w:styleId"/> span { <xsl:apply-templates select="w:rPr" /> }
-						</xsl:when>
-						<xsl:when test="@w:type='character'">
-							span.<xsl:value-of select="./@w:styleId"/> { <xsl:apply-templates select="w:rPr" /> }
-						</xsl:when>
-					</xsl:choose>
+				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='paragraph']">
+					<xsl:value-of select="concat('p.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:pPr" /> }
+					<xsl:value-of select="concat('p.',./@w:styleId,'>span { ')"/><xsl:apply-templates select="w:rPr" /> }
+				</xsl:for-each>
+				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='character']">
+					<xsl:value-of select="concat('span.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:rPr" /> }
 				</xsl:for-each>
 				<xsl:for-each select="document(resolve-uri('numbering.xml',base-uri()))/w:numbering/w:num">
 					<xsl:variable name="listid" select="@w:numId"/>
@@ -263,14 +267,6 @@
 					}
 				</xsl:for-each>
 			</style>
-			<!-- Match always last paragraph of page -->
-			<xsl:for-each select="*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))]|w:sectPr">
-				<xsl:call-template name="sections">
-					<xsl:with-param name="reldocument" select="resolve-uri('_rels/document.xml.rels',base-uri())" />
-					<xsl:with-param name="themefile" select="$themefile" />
-				</xsl:call-template>
-			</xsl:for-each>
-		</article>
 		<script>
 			<xsl:text>
 				<![CDATA[

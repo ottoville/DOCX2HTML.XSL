@@ -70,6 +70,7 @@
 			<xsl:if test="local-name(..)='sdtContent'">
 				<xsl:value-of select="concat(' ',generate-id(../..))"/>
 			</xsl:if>
+			<xsl:value-of select="concat(' ',$currentid)"/>
 		</xsl:variable>
 		<xsl:apply-templates select="w:r/mc:AlternateContent/mc:Choice/w:drawing/wp:anchor[wp:positionH/@relativeFrom='page' or wp:positionV/@relativeFrom='page']">
 			<xsl:with-param name="listintend" select="$listintend" />
@@ -78,7 +79,7 @@
 		</xsl:apply-templates>
 		<p class="{normalize-space($class)}" pid="{$currentid}">
 			<xsl:apply-templates select="w:pPr|w:r[(w:tab or not(./following-sibling::w:r[w:tab]))]|w:ins|w:hyperlink|w:sdt">
-				<xsl:with-param name="scopeselector">p[pid='<xsl:value-of select="$currentid"/>']</xsl:with-param>
+				<xsl:with-param name="scopeselector">.<xsl:value-of select="$currentid"/></xsl:with-param>
 				<xsl:with-param name="listintend" select="$listintend" />
 				<xsl:with-param name="reldocument" select="$reldocument" />
 				<xsl:with-param name="themefile" select="$themefile" />

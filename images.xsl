@@ -411,12 +411,15 @@
 			<xsl:with-param name="themefile" select="$themefile" />
 		</xsl:apply-templates>
 	</xsl:template>
-	<xsl:template match="v:roundrect|v:shape">
+	<xsl:template match="v:roundrect|v:shape|v:group">
 		<xsl:param name="reldocument" />
 		<xsl:param name="themefile" />
 		<div>
 			<xsl:attribute name="style">
-				<xsl:value-of select="@style"/>
+				<xsl:value-of select="@style"/>;
+				<xsl:if test="@fillcolor">
+					<xsl:value-of select="concat('background-color:',@fillcolor,';')"/>;
+				</xsl:if>
 			</xsl:attribute>
 			<xsl:apply-templates select="v:textbox">
 				<xsl:with-param name="reldocument" select="$reldocument" />
