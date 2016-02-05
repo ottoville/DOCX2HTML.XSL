@@ -47,6 +47,7 @@
 	</xsl:template>
 	<xsl:template match="w:r[w:tab]">
 		<xsl:param name="reldocument" />
+		<xsl:param name="pagenumber" />
 		<xsl:variable name="prevtab" select="preceding-sibling::*[w:tab][1]" />
 		<xsl:variable name="tabstop" select="(number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20) * (4 div 3) "/>
 		<span>
@@ -61,6 +62,7 @@
 					<xsl:apply-templates select="./preceding-sibling::w:r[(w:fldChar[@w:fldCharType='begin'] or 
 										(not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')))]">
 						<xsl:with-param name="reldocument" select="$reldocument" />
+						<xsl:with-param name="pagenumber" select="$pagenumber" />
 					</xsl:apply-templates>
 				</xsl:when>
 				<xsl:otherwise>
@@ -114,34 +116,22 @@
 	</xsl:template>
 	<xsl:template match="w:r[w:fldChar[@w:fldCharType='begin']]">
 		<xsl:param name="reldocument" />
-		<xsl:variable name="fieldtype">
-			<xsl:choose>
-				<xsl:when test="contains(./following-sibling::w:r[1]/w:instrText,'&#34;')">
-					<xsl:value-of select="normalize-space(substring-before(./following-sibling::w:r[1]/w:instrText,'&#34;'))"/>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of select="normalize-space(./following-sibling::w:r[1]/w:instrText)"/>
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:variable>
+		<xsl:param name="pagenumber" />
+		<xsl:variable name="fieldtype" select="substring-before(concat(normalize-space(./following-sibling::w:r[1]/w:instrText),' '),' ')" />
 		<xsl:variable name="end" select="./following-sibling::w:r[w:fldChar/@w:fldCharType='end'][1]" />
 		<xsl:variable name="startid" select="generate-id(./following-sibling::w:r[w:fldChar/@w:fldCharType='separate'][1])" />
 		<xsl:variable name="text" select="$end/preceding-sibling::w:r[generate-id(./preceding-sibling::w:r[w:fldChar/@w:fldCharType='separate'][1])=$startid]" />
-		<xsl:variable name="type">
-			<xsl:choose>
-				<xsl:when test="$fieldtype='FORMCHECKBOX'">
-					<xsl:value-of select="'checkbox'" />
-				</xsl:when>
-				<xsl:when test="$fieldtype='HYPERLINK'">
-					<xsl:value-of select="'hyperlink'" />
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of select="'text'" />
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:variable>
 		<xsl:choose>
-			<xsl:when test="$type='hyperlink'">
+			<xsl:when test="$fieldtype='FORMCHECKBOX'">
+				<input type="checkbox" placeholder="{$text}"/>
+			</xsl:when>
+			<xsl:when test="$fieldtype='NUMPAGES'">
+				<output><xsl:value-of select="$text"/></output>
+			</xsl:when>
+			<xsl:when test="$fieldtype='PAGE'">
+				<output><xsl:value-of select="$pagenumber"/></output>
+			</xsl:when>
+			<xsl:when test="$fieldtype='HYPERLINK'">
 				<a href="{substring-before(substring-after(./following-sibling::w:r[1]/w:instrText,'&#34;'),'&#34;')}">
 					<xsl:attribute name="style">
 							<xsl:apply-templates select="w:rPr"/>
@@ -154,8 +144,9 @@
 				</a>
 			</xsl:when>
 			<xsl:otherwise>
-				<input type="{$type}" placeholder="{$text}"/>
+				<input type="text" placeholder="{$fieldtype}"/>
 			</xsl:otherwise>
 		</xsl:choose>
+
 	</xsl:template>
 </xsl:stylesheet>

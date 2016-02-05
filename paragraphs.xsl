@@ -61,6 +61,7 @@
 	<xsl:template name="paragraph" match="w:p[not(w:pPr/w:numPr)]">
 		<xsl:param name="reldocument" />
 		<xsl:param name="themefile"/>
+		<xsl:param name="pagenumber"/>
 		<xsl:param name="listintend"/>
 		<xsl:variable name="currentid" select="generate-id(current())" />
 		<xsl:variable name="class">
@@ -83,6 +84,7 @@
 				<xsl:with-param name="listintend" select="$listintend" />
 				<xsl:with-param name="reldocument" select="$reldocument" />
 				<xsl:with-param name="themefile" select="$themefile" />
+				<xsl:with-param name="pagenumber" select="$pagenumber" />
 			</xsl:apply-templates>
 			<xsl:if test='count(w:r)=0'>
 				<br />
@@ -92,6 +94,7 @@
 	<!-- List begin-->
 	<xsl:template match="w:p[w:pPr/w:numPr and not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val])]">
 		<xsl:param name="reldocument" />
+		<xsl:param name="pagenumber" />
 		<xsl:param name="listid" select="w:pPr/w:numPr/w:numId/@w:val" />
 		<xsl:param name="listlevel" select="w:pPr/w:numPr/w:ilvl/@w:val" />
 		<xsl:param name="relid" select="document(resolve-uri('numbering.xml',base-uri()))/w:numbering/w:num[@w:numId=$listid]/w:abstractNumId/@w:val" />
@@ -122,6 +125,7 @@
 																		w:pPr/w:numPr/w:numId/@w:val=$listid)]">
 				<xsl:with-param name="reldocument" select="$reldocument" />
 				<xsl:with-param name="listintend" select="number($thislistintend)" />
+				<xsl:with-param name="pagenumber" select="$pagenumber" />
 			</xsl:apply-templates>
 		</ul>
 	</xsl:template>
