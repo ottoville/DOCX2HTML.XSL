@@ -131,6 +131,9 @@
 			<xsl:when test="$fieldtype='PAGE'">
 				<output><xsl:value-of select="$pagenumber"/></output>
 			</xsl:when>
+			<xsl:when test="$fieldtype='MACROBUTTON'">
+				<script></script>
+			</xsl:when>
 			<xsl:when test="$fieldtype='HYPERLINK'">
 				<a href="{substring-before(substring-after(./following-sibling::w:r[1]/w:instrText,'&#34;'),'&#34;')}">
 					<xsl:attribute name="style">

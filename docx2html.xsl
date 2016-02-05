@@ -222,6 +222,9 @@
 				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='paragraph']">
 					<xsl:value-of select="concat('p.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:pPr" /> }
 					<xsl:value-of select="concat('p.',./@w:styleId,'>span { ')"/><xsl:apply-templates select="w:rPr" /> }
+					<xsl:for-each select="w:pPr/w:tabs/w:tab">
+						<xsl:value-of select="concat('p.',../../../@w:styleId,' span.tab:nth-child(',position(),') { width: ',(number(./@w:pos) div 20) * (4 div 3),'px !important }')"/>
+					</xsl:for-each>
 				</xsl:for-each>
 				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='character']">
 					<xsl:value-of select="concat('span.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:rPr" /> }
