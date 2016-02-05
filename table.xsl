@@ -16,6 +16,7 @@
 	<xsl:template match="w:tc">
 		<xsl:param name="reldocument" />
 		<td>
+			<!-- Check if cell will span multiple cells -->
 			<xsl:if test="w:tcPr/w:vMerge[@w:val='restart']">
 				<xsl:attribute name="rowspan">
 					<xsl:value-of select="count(../following-sibling::w:tr/w:tc/w:tcPr/w:vMerge)+1"/>
@@ -34,6 +35,7 @@
 		<xsl:param name="trscopeselector">tr[data-rid="<xsl:value-of select="generate-id(.)"/>"]</xsl:param>
 		<tr>
 			<xsl:attribute name="data-rid" select="generate-id(.)"/>
+			<!-- Apply template to cells which are not merged -->
 			<xsl:apply-templates select="w:trPr|w:tc[not(w:tcPr/w:vMerge[not(@w:val='restart')])]|w:sdt">
 				<xsl:with-param name="scopeselector" select="$trscopeselector" />
 				<xsl:with-param name="reldocument" select="$reldocument" />
