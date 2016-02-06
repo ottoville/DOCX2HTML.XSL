@@ -50,13 +50,9 @@
 		<xsl:param name="pagenumber" />
 		<xsl:variable name="prevtab" select="preceding-sibling::*[w:tab][1]" />
 		<xsl:variable name="tabstop" select="(number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20) * (4 div 3) "/>
-		<span>
+		<div>
 			<xsl:attribute name="class">tab</xsl:attribute>
-			<xsl:attribute name="style">
-				display:inline-block;
-				min-width:<xsl:value-of select="$tabstop"/>px;
-				text-indent:0;
-			</xsl:attribute>
+			<xsl:attribute name="style" select="concat('min-width:',$tabstop,'px')" />
 			<xsl:choose>
 				<xsl:when test="not($prevtab)">
 					<xsl:apply-templates select="./preceding-sibling::w:r[(w:fldChar[@w:fldCharType='begin'] or 
@@ -77,7 +73,7 @@
 					</xsl:apply-templates>
 				</xsl:otherwise>
 			</xsl:choose>
-		</span>
+		</div>
 		<xsl:if test="../w:pPr/w:ind/@w:hanging and not(./preceding-sibling::w:r[w:tab])">
 			<br />
 		</xsl:if>
@@ -147,7 +143,7 @@
 				</a>
 			</xsl:when>
 			<xsl:otherwise>
-				<input type="text" placeholder="{$fieldtype}"/>
+				<input type="text" placeholder="{$text}"/>
 			</xsl:otherwise>
 		</xsl:choose>
 

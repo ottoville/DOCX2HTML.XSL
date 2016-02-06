@@ -211,6 +211,7 @@
 			</xsl:for-each>
 		</article>
 			<style>
+				.tab {display:inline-block;text-indent:0;}
 				ins {text-decoration:none;}
 				ul {list-style-position:inside}
 				ul>li>p:first-child {display:inline;}
@@ -223,7 +224,7 @@
 					<xsl:value-of select="concat('p.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:pPr" /> }
 					<xsl:value-of select="concat('p.',./@w:styleId,'>span { ')"/><xsl:apply-templates select="w:rPr" /> }
 					<xsl:for-each select="w:pPr/w:tabs/w:tab">
-						<xsl:value-of select="concat('p.',../../../@w:styleId,' span.tab:nth-child(',position(),') { width: ',(number(./@w:pos) div 20) * (4 div 3),'px !important }')"/>
+						<xsl:value-of select="concat('p.',../../../@w:styleId,' div.tab:nth-of-type(',position(),') { width: ',(number(./@w:pos) div 20) * (4 div 3),'px !important }')"/>
 					</xsl:for-each>
 				</xsl:for-each>
 				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='character']">
