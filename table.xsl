@@ -18,12 +18,15 @@
 		<td>
 			<!-- Check if cell will span multiple cells -->
 			<xsl:if test="w:tcPr/w:vMerge[@w:val='restart']">
-				<xsl:attribute name="rowspan">
-					<xsl:value-of select="count(../following-sibling::w:tr/w:tc/w:tcPr/w:vMerge)+1"/>
-				</xsl:attribute>
+				<!-- Calculate cell index with combined cells -->
+				<xsl:variable name="celindex" select="count(current()/preceding-sibling::w:tc[not(w:tcPr/w:gridSpan)])+sum(current()/preceding-sibling::w:tc/w:tcPr/w:gridSpan/@w:val)" />
+				<!-- How many combined rows have so far -->
+				<xsl:variable name="restartindex" select="count(current()/../preceding-sibling::w:tr/w:tc[count(preceding-sibling::w:tc[not(w:tcPr/w:gridSpan)])+sum(current()/../preceding-sibling::w:tc/w:tcPr/w:gridSpan/@w:val)=$celindex]/w:tcPr/w:vMerge[@w:val='restart'])" />
+				<!-- Apply rowspan attribute -->
+				<xsl:attribute name="rowspan" select="count(current()/../following-sibling::w:tr/w:tc[count(preceding-sibling::w:tc[not(w:tcPr/w:gridSpan)])+sum(preceding-sibling::w:tc/w:tcPr/w:gridSpan/@w:val)=$celindex][count(../preceding-sibling::w:tr/w:tc[count(preceding-sibling::w:tc[not(w:tcPr/w:gridSpan)])+sum(preceding-sibling::w:tc/w:tcPr/w:gridSpan/@w:val)=$celindex]/w:tcPr/w:vMerge[@w:val='restart'])=$restartindex+1]/w:tcPr/w:vMerge[not(@w:val='restart')])+1" />
 			</xsl:if>
 			<xsl:if test="w:tcPr/w:gridSpan">
-				<xsl:attribute name="colspan"><xsl:value-of select="w:tcPr/w:gridSpan/@w:val"/></xsl:attribute>
+				<xsl:attribute name="colspan" select="w:tcPr/w:gridSpan/@w:val" />
 			</xsl:if>
 			<xsl:apply-templates select="w:tcPr|w:p|w:sdt">
 				<xsl:with-param name="reldocument" select="$reldocument" />

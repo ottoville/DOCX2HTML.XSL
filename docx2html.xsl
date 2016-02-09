@@ -280,8 +280,12 @@
 					var tabinterval=parseFloat(tabs[t].style.minWidth);
 					var realwidth=parseFloat(window.getComputedStyle(tabs[t]).width)
 					if(realwidth>tabinterval) {
-						tabs[t].style.width=Math.ceil(realwidth/tabinterval)*tabinterval+'px';	
-					}	
+						var tabnumber=Math.ceil(realwidth/tabinterval);
+						for(tt=tabnumber-1,next=tabs[t].nextSibling;	tt>0&&next&&next.classList.contains('tab')&&!next.firstChild	;next=next.nextSibling,tt--) {
+							next.parentNode.removeChild(next);
+						}
+						tabs[t].style.width=tabnumber*tabinterval+'px';	
+					}
 				}
 				]]>
 			</xsl:text>

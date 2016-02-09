@@ -99,16 +99,18 @@
 				<xsl:value-of select="concat(' ',../../w:pPr/w:rPr/w:rStyle/@w:val)"/>
 			</xsl:if>
 		</xsl:variable>
-		<span>
-			<xsl:attribute name="class" select="normalize-space($class)"/>
-			<xsl:attribute name="style">
-				<xsl:apply-templates select="w:rPr"/>
-			</xsl:attribute>
-			<xsl:apply-templates select="w:t|w:pict|w:drawing|mc:AlternateContent">
-				<xsl:with-param name="reldocument" select="$reldocument" />
-				<xsl:with-param name="themefile" select="$themefile" />
-			</xsl:apply-templates>
-		</span>
+		<xsl:if test="w:t|w:pict|w:drawing|mc:AlternateContent">
+			<span>
+				<xsl:attribute name="class" select="normalize-space($class)"/>
+				<xsl:attribute name="style">
+					<xsl:apply-templates select="w:rPr"/>
+				</xsl:attribute>
+				<xsl:apply-templates select="w:t|w:pict|w:drawing|mc:AlternateContent">
+					<xsl:with-param name="reldocument" select="$reldocument" />
+					<xsl:with-param name="themefile" select="$themefile" />
+				</xsl:apply-templates>
+			</span>
+		</xsl:if>
 	</xsl:template>
 	<xsl:template match="w:r[w:fldChar[@w:fldCharType='begin']]">
 		<xsl:param name="reldocument" />
