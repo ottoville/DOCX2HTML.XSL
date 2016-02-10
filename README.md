@@ -21,4 +21,6 @@ So far following features are supported:
 
 The XSLT has been tested with Saxonce XSLT processor, but it should work with any XSLT 2.0 processor. In order to do conversion DOCX file need to be unzipped and docx2html.xsl stylesheet applied to document.xml file. Notice that current status of browsers native XSLT processors are lacking so many features that it is not possible to use them with this XSLT file.
 
+See example of using Saxonce XSLT processor to [transform docx to html](https://github.com/ottoville/DOCX2HTML.XSL/wiki/Saxonce-example)
+
 In case your DOCX file is not converted in way it should, please file an issue. Attach an example docx file into the issue.
