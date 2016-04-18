@@ -9,7 +9,7 @@ Guidelines for project:
 
 So far following features are supported:
 
-- Pages (Page size, page orientation, forced page breaks, headers)
+- Pages (Sections, Page size, page orientation, forced page breaks, headers, footers)
 - Paragraphs ( indents, paddings) 
 - Lists (also nested list with right indents)
 - Text styles: italic, underline, bold, color, font, background, kerning, alignment etc
