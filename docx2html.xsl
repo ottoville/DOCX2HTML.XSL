@@ -219,7 +219,15 @@
 				ul.outsidee { list-style-position:outside} ul.outsidee>li>p:first-child { text-indent:0 !important;display:block}
 				ul>li>p:not(:first-child) { text-indent:0 }
 				ul, li { margin:0;padding:0 } li p {} input[type="text"] {height:18px} input[type="checkbox"] { margin:0 } p {margin:0;position:relative}
-				article>div {display:block; margin-top:0.1cm;border-width:1px;border-style:solid;position:relative;}
+				article {
+					counter-reset: page;
+				}
+				article>div {
+					counter-increment: page;
+					display:block; margin-top:0.1cm;border-width:1px;border-style:solid;position:relative;}
+				article>div output.pagenumber::before {
+					content: counter(page);
+				}
 				article>div>header.even {
 					display:none;
 				}

@@ -60,7 +60,6 @@
 	</xsl:template>
 	<xsl:template match="w:r[w:tab]">
 		<xsl:param name="reldocument" />
-		<xsl:param name="pagenumber" />
 		<xsl:variable name="prevtab" select="preceding-sibling::*[w:tab][1]" />
 		<xsl:variable name="tabstop" select="(number(document(resolve-uri('settings.xml',base-uri()))/w:settings/w:defaultTabStop/@w:val) div 20) * (4 div 3) "/>
 		<div>
@@ -71,7 +70,6 @@
 					<xsl:apply-templates select="./preceding-sibling::w:r[(w:fldChar[@w:fldCharType='begin'] or 
 										(not(w:fldChar|w:instrText) and not(./preceding-sibling::w:r[w:fldChar][1]/w:fldChar/@w:fldCharType='separate')))]">
 						<xsl:with-param name="reldocument" select="$reldocument" />
-						<xsl:with-param name="pagenumber" select="$pagenumber" />
 					</xsl:apply-templates>
 				</xsl:when>
 				<xsl:otherwise>
@@ -127,7 +125,6 @@
 	</xsl:template>
 	<xsl:template match="w:r[w:fldChar[@w:fldCharType='begin']]">
 		<xsl:param name="reldocument" />
-		<xsl:param name="pagenumber" />
 		<xsl:variable name="fieldtype" select="substring-before(concat(normalize-space(./following-sibling::w:r[1]/w:instrText),' '),' ')" />
 		<xsl:variable name="end" select="./following-sibling::w:r[w:fldChar/@w:fldCharType='end'][1]" />
 		<xsl:variable name="startid" select="generate-id(./following-sibling::w:r[w:fldChar/@w:fldCharType='separate'][1])" />
@@ -140,7 +137,7 @@
 				<output><xsl:value-of select="$text"/></output>
 			</xsl:when>
 			<xsl:when test="$fieldtype='PAGE'">
-				<output><xsl:value-of select="$pagenumber"/></output>
+				<output><xsl:attribute name="class" select="'pagenumber'"/></output>
 			</xsl:when>
 			<xsl:when test="$fieldtype='MACROBUTTON'">
 				<script></script>

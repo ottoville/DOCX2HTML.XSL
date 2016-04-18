@@ -241,7 +241,6 @@
 						<xsl:call-template name="pages">
 							<xsl:with-param name="reldocument" select="$reldocument" />
 							<xsl:with-param name="themefile" select="$themefile" />
-							<!--<xsl:with-param name="pagenumber" select="position()" />-->
 							<xsl:with-param name="sectionselector" select="$sectionselector" />
 							<xsl:with-param name="selector" select="preceding-sibling::*|current()" />
 							<xsl:with-param name="defaultheader" select="$defaultheader" />
@@ -260,8 +259,6 @@
 						<xsl:call-template name="pages">
 							<xsl:with-param name="reldocument" select="$reldocument" />
 							<xsl:with-param name="themefile" select="$themefile" />
-							<!--<xsl:with-param name="pagenumber" select="count((preceding-sibling::*|current())[w:r/w:br[@w:type='page']]|(preceding-sibling::*|current())[last()])+1" />
-							-->
 							<xsl:with-param name="sectionselector" select="$sectionselector" />
 							<xsl:with-param name="selector" select="current()|./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevsection/preceding-sibling::*)]" />
 							<xsl:with-param name="prevpage" select="(current()|./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevsection/preceding-sibling::*)])[w:r/w:br[@w:type='page']][count(./preceding-sibling::*) &lt; count(current()/preceding-sibling::*)][last()]" />
@@ -280,8 +277,7 @@
 						<xsl:call-template name="pages">
 							<xsl:with-param name="reldocument" select="$reldocument" />
 							<xsl:with-param name="themefile" select="$themefile" />
-							<!--<xsl:with-param name="pagenumber" select="count((preceding-sibling::*|current())[w:r/w:br[@w:type='page']]|(preceding-sibling::*|current())[last()])+2" />
-							--><xsl:with-param name="sectionselector" select="$sectionselector" />
+							<xsl:with-param name="sectionselector" select="$sectionselector" />
 							<xsl:with-param name="selector" select="$prevsection/following-sibling::*" />
 							<xsl:with-param name="prevpage" select="($prevsection/following-sibling::*)[w:r/w:br[@w:type='page']][count(./preceding-sibling::*) &lt; count(current()/preceding-sibling::*)][last()]" />
 							<xsl:with-param name="defaultheader" select="$defaultheader" />
