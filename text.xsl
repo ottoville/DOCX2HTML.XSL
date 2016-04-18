@@ -14,6 +14,11 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     exclude-result-prefixes="xs w r pr wp a pic xhtml w14 wps mc"
     version="2.0">
+	<!-- docx2html.xsl
+		Project started by Otto-Ville Lamminpää
+			ottoville.lamminpaa@gmail.com
+			+358445596869
+	-->
 	<xsl:template match="w:rPr" name="spanstyle">
 		<xsl:if test="../w:t/@xml:space='preserve'">white-space:pre-wrap;</xsl:if>
 		<xsl:for-each select="./*">
@@ -44,6 +49,14 @@
 	<xsl:template match="w:t">
 		<xsl:param name="themefile" />
 		<xsl:value-of select="."/>
+	</xsl:template>
+	<!--<xsl:template match="w:br[@w:type='page']">
+		<hr>
+			<xsl:attribute name="style">page-break-before:always</xsl:attribute>
+		</hr>
+	</xsl:template>-->
+	<xsl:template match="w:br[not(@w:type)]">
+		<br />
 	</xsl:template>
 	<xsl:template match="w:r[w:tab]">
 		<xsl:param name="reldocument" />
@@ -99,13 +112,13 @@
 				<xsl:value-of select="concat(' ',../../w:pPr/w:rPr/w:rStyle/@w:val)"/>
 			</xsl:if>
 		</xsl:variable>
-		<xsl:if test="w:t|w:pict|w:drawing|mc:AlternateContent">
+		<xsl:if test="w:t|w:pict|w:drawing|mc:AlternateContent|w:br">
 			<span>
 				<xsl:attribute name="class" select="normalize-space($class)"/>
 				<xsl:attribute name="style">
 					<xsl:apply-templates select="w:rPr"/>
 				</xsl:attribute>
-				<xsl:apply-templates select="w:t|w:pict|w:drawing|mc:AlternateContent">
+				<xsl:apply-templates select="w:t|w:pict|w:drawing|mc:AlternateContent|w:br">
 					<xsl:with-param name="reldocument" select="$reldocument" />
 					<xsl:with-param name="themefile" select="$themefile" />
 				</xsl:apply-templates>

@@ -19,6 +19,7 @@
 			ottoville.lamminpaa@gmail.com
 			+358445596869
 	-->
+	<xsl:import href="pages.xsl"/>
 	<xsl:import href="paragraphs.xsl"/>
 	<xsl:import href="text.xsl"/>
 	<xsl:import href="table.xsl"/>
@@ -195,18 +196,18 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-
 	<xsl:template match="w:body">
 		<xsl:variable name="themefile" select="document(resolve-uri(document(resolve-uri('_rels/document.xml.rels',base-uri()))/*/*[@Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme']/@Target,base-uri()))"/>
 
 		<meta name="{'generator'}" content="{'docx2html.xsl https://github.com/ottoville/DOCX2HTML.XSLT'}"/>
 		<article>
-			<!-- Match always last paragraph of page -->
-			<xsl:for-each select="*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))]|w:sectPr">
+			<!--	Match always last paragraph of page.
+					Cannot use apply-templates here because it would cause endles loop as 
+					same paragraphs are going to be iterated in section template
+			-->
+			<xsl:for-each select="*[w:pPr/w:sectPr]|w:sectPr">
 				<xsl:call-template name="sections">
-					<xsl:with-param name="reldocument" select="resolve-uri('_rels/document.xml.rels',base-uri())" />
 					<xsl:with-param name="themefile" select="$themefile" />
-					<xsl:with-param name="pagenumber" select="position()" />
 				</xsl:call-template>
 			</xsl:for-each>
 		</article>
@@ -218,8 +219,54 @@
 				ul.outsidee { list-style-position:outside} ul.outsidee>li>p:first-child { text-indent:0 !important;display:block}
 				ul>li>p:not(:first-child) { text-indent:0 }
 				ul, li { margin:0;padding:0 } li p {} input[type="text"] {height:18px} input[type="checkbox"] { margin:0 } p {margin:0;position:relative}
-				article>* {display:none} article>section {display:block; margin-top:0.1cm;border-width:1px;border-style:solid;position:relative;}
-				<xsl:value-of select="base-uri(.)"/>
+				article>div {display:block; margin-top:0.1cm;border-width:1px;border-style:solid;position:relative;}
+				article>div>header.even {
+					display:none;
+				}
+				article>div:nth-of-type(even)>header.even {
+					display:block;
+				}
+				article>div:nth-of-type(even)>header.even {
+					display:block;
+				}
+				article>div:nth-of-type(even)>header.even+header.default {
+					display:none;
+				}
+				article>div>header.first {
+					display:none;
+				}
+				article>hr[data-firstheader="true"]+div>header.first {
+					display:block;
+				}
+				article>hr[data-firstheader="true"]+div>header.first ~ header {
+					display:none !important;
+				}
+				
+				article>div>footer {
+					position:absolute;
+					bottom:0;
+				}
+				article>div>footer.even {
+					display:none;
+				}
+				article>div:nth-of-type(even)>footer.even {
+					display:block;
+				}
+				article>div:nth-of-type(even)>footer.even {
+					display:block;
+				}
+				article>div:nth-of-type(even)>footer.even+footer.default {
+					display:none;
+				}
+				article>div>footer.first {
+					display:none;
+				}
+				article>hr[data-firstheader="true"]+div>footer.first {
+					display:block;
+				}
+				article>hr[data-firstheader="true"]+div>footer.first ~ footer {
+					display:none !important;
+				}				
 				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='paragraph']">
 					<xsl:value-of select="concat('p.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:pPr" /> }
 					<xsl:value-of select="concat('p.',./@w:styleId,'>span { ')"/><xsl:apply-templates select="w:rPr" /> }
@@ -291,79 +338,6 @@
 			</xsl:text>
 		</script>
 	</xsl:template>
-	<xsl:template name="section">
-		<xsl:param name="reldocument" />
-		<xsl:param name="themefile" />
-		<xsl:param name="selector" />
-		<xsl:param name="pagenumber" />
-		<xsl:for-each select="$selector">
-			<xsl:variable name="listid" select="w:pPr/w:numPr/w:numId/@w:val" />
-			<xsl:variable name="nextlistid" select="./following-sibling::w:p[w:pPr/w:numPr][not(w:pPr/w:numPr/w:numId/@w:val=$listid)][1]/w:pPr/w:numPr/w:numId/@w:val" />
-			<xsl:if test="not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=$nextlistid]) and (not(w:pPr/w:numPr) or not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]))">
-				<xsl:apply-templates select="current()">
-					<xsl:with-param name="reldocument" select="$reldocument" />
-					<xsl:with-param name="themefile" select="$themefile" />
-					<xsl:with-param name="pagenumber" select="$pagenumber" />
-				</xsl:apply-templates>
-			</xsl:if>
-		</xsl:for-each>
-	</xsl:template>
-	<xsl:template name="sections"><!-- Always the last page of document -->
-		<xsl:param name="reldocument" />
-		<xsl:param name="themefile" />
-		<xsl:param name="pagenumber" />
-		<!-- Either the page section, following section or document section-->
-		<xsl:variable name="sectionselector" select="w:pPr/w:sectPr|./following-sibling::*[w:pPr/w:sectPr][1]/w:pPr/w:sectPr|/w:document/w:body/w:sectPr"/>
-		<xsl:variable name="prevpage" select="preceding-sibling::*[w:pPr/w:sectPr or (w:r/w:br/@w:type='page' and not(./following-sibling::*[1][w:pPr/w:sectPr]))][1]" />
-		<xsl:variable name="thisid" select="generate-id(current())" />
-		<xsl:variable name="paddingtop" select="number($sectionselector[1]/w:pgMar/@w:top)" />
-		<xsl:variable name="paddingbottom" select="number($sectionselector[1]/w:pgMar/@w:bottom)" />
-		<xsl:variable name="paddingright" select="number($sectionselector[1]/w:pgMar/@w:right)" />
-		<xsl:variable name="paddingleft" select="number($sectionselector[1]/w:pgMar/@w:left)" />
-		<section>
-			<xsl:attribute name="style">
-				width:<xsl:value-of select="(number($sectionselector[1]/w:pgSz/@w:w) - $paddingright - $paddingleft) div 20"/>pt;
-				min-height:<xsl:value-of select="(number($sectionselector[1]/w:pgSz/@w:h) - $paddingtop - $paddingbottom) div 20"/>pt;
-				padding:<xsl:value-of select="$paddingtop div 20"/>pt <xsl:value-of select="$paddingright div 20"/>pt <xsl:value-of select="$paddingbottom div 20"/>pt <xsl:value-of select="$paddingleft div 20"/>pt;
-			</xsl:attribute>
-			<xsl:choose>
-				<xsl:when test="not($prevpage)"> <!--first page or document with one page -->
-					<xsl:if test='$sectionselector[1]/w:headerReference[@w:type="first"]'>
-						<header>
-							<xsl:variable name="hyperlinkid" select='$sectionselector[1]/w:headerReference[@w:type="first"]/@r:id'/>
-							<xsl:attribute name="id"><xsl:value-of select="$hyperlinkid" /></xsl:attribute>
-							<xsl:apply-templates select="document(resolve-uri(document($reldocument)/*/*[@Id=$hyperlinkid]/@Target,base-uri()))/*/*">
-								<xsl:with-param name="pagenumber" select="$pagenumber" />
-								<xsl:with-param name="reldocument" select="resolve-uri(concat('_rels/',document($reldocument)/*/*[@Id=$hyperlinkid]/@Target,'.rels'),base-uri())" />
-							</xsl:apply-templates>
-						</header>
-					</xsl:if>
-					<xsl:call-template name="section">
-						<xsl:with-param name="reldocument" select="$reldocument" />
-						<xsl:with-param name="themefile" select="$themefile" />
-						<xsl:with-param name="pagenumber" select="$pagenumber" />
-						<xsl:with-param name="selector" select="preceding-sibling::*|current()" />
-					</xsl:call-template>
-				</xsl:when>
-				<xsl:when test="w:pPr/w:sectPr or w:r/w:br/@w:type='page'">
-					<xsl:call-template name="section">
-						<xsl:with-param name="reldocument" select="$reldocument" />
-						<xsl:with-param name="themefile" select="$themefile" />
-						<xsl:with-param name="pagenumber" select="$pagenumber" />
-						<xsl:with-param name="selector" select="current()|./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevpage/preceding-sibling::*)]" />
-					</xsl:call-template>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:call-template name="section">
-						<xsl:with-param name="reldocument" select="$reldocument" />
-						<xsl:with-param name="themefile" select="$themefile" />
-						<xsl:with-param name="pagenumber" select="$pagenumber" />
-						<xsl:with-param name="selector" select="$prevpage/following-sibling::*" />
-					</xsl:call-template>
-				</xsl:otherwise>
-			</xsl:choose>
-		</section>
-	</xsl:template>
 	<xsl:template match="w:sdt">
 		<xsl:param name="reldocument" />
 		<xsl:param name="thisid" select="generate-id(current())" />
@@ -390,13 +364,6 @@
 			<xsl:attribute name="target">_blank</xsl:attribute>
 			<xsl:apply-templates />
 		</a>
-	</xsl:template>
-	<xsl:template match="w:br">
-		<br>
-			<xsl:if test="@w:type='page'">
-				<xsl:attribute name="style">page-break-before:always</xsl:attribute>
-			</xsl:if>	
-		</br>
 	</xsl:template>
 	<xsl:template match="w:instrText">
 	</xsl:template>
