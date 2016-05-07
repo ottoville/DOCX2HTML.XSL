@@ -22,7 +22,6 @@
 	-->	
 	<xsl:template name="page">
 		<xsl:param name="reldocument" />
-		<xsl:param name="sectionselector" />
 		<xsl:param name="themefile" />
 		<xsl:param name="selector" />
 		<xsl:param name="defaultheader" />
@@ -62,17 +61,22 @@
 						</xsl:apply-templates>
 					</header>
 				</xsl:if>		
+				
 				<xsl:for-each select="$selector">
+					<!--
+					This can not work, variable cannot be changed after it has been set.
 					<xsl:variable name="listid" select="w:pPr/w:numPr/w:numId/@w:val" />
 					<xsl:variable name="nextlistid" select="./following-sibling::w:p[w:pPr/w:numPr][not(w:pPr/w:numPr/w:numId/@w:val=$listid)][1]/w:pPr/w:numPr/w:numId/@w:val" />
-					<!--
 					Filter empty paragraphs?
 					<xsl:if test="not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=$nextlistid]) and (not(w:pPr/w:numPr) or not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]))">
 						-->
-					<xsl:apply-templates select="current()">
-							<xsl:with-param name="reldocument" select="$reldocument" />
-							<xsl:with-param name="themefile" select="$themefile" />
-						</xsl:apply-templates>
+					<!--Filter list items from middle of list -->
+					<xsl:if test="not(w:pPr/w:numPr) or (w:pPr/w:numPr and not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]))">
+						<xsl:apply-templates select="current()">
+								<xsl:with-param name="reldocument" select="$reldocument" />
+								<xsl:with-param name="themefile" select="$themefile" />
+							</xsl:apply-templates>
+					</xsl:if>
 					<!--</xsl:if> -->
 				</xsl:for-each>	
 				<xsl:if test="string-length($firstpagefooter)">
@@ -122,7 +126,6 @@
 			<xsl:when test="not($prevpage)">
 				<xsl:call-template name="page">
 					<xsl:with-param name="reldocument" select="$reldocument" />
-					<xsl:with-param name="sectionselector" select="$sectionselector" />
 					<xsl:with-param name="sectionnumber" select="$sectionnumber" />
 					<xsl:with-param name="themefile" select="$themefile" />
 					<xsl:with-param name="defaultheader" select="$defaultheader" />
@@ -137,7 +140,6 @@
 				<xsl:call-template name="page">
 					<xsl:with-param name="sectionnumber" select="$sectionnumber" />
 					<xsl:with-param name="reldocument" select="$reldocument" />
-					<xsl:with-param name="sectionselector" select="$sectionselector" />
 					<xsl:with-param name="themefile" select="$themefile" />
 					<xsl:with-param name="defaultheader" select="$defaultheader" />
 					<xsl:with-param name="defaultfooter" select="$defaultfooter" />

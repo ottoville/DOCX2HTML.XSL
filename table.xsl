@@ -15,6 +15,7 @@
     version="2.0">
 	<xsl:template match="w:tc">
 		<xsl:param name="reldocument" />
+		<xsl:param name="thisid" select="generate-id(current())" />
 		<td>
 			<!-- Check if cell will span multiple cells -->
 			<xsl:if test="w:tcPr/w:vMerge[@w:val='restart']">
@@ -30,6 +31,7 @@
 			</xsl:if>
 			<xsl:apply-templates select="w:tcPr|w:p|w:sdt">
 				<xsl:with-param name="reldocument" select="$reldocument" />
+				<xsl:with-param name="scopeselector" select="concat('.',$thisid)" />
 			</xsl:apply-templates>
 		</td>
 	</xsl:template>

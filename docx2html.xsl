@@ -21,6 +21,7 @@
 	-->
 	<xsl:import href="pages.xsl"/>
 	<xsl:import href="paragraphs.xsl"/>
+	<xsl:import href="lists.xsl"/>
 	<xsl:import href="text.xsl"/>
 	<xsl:import href="table.xsl"/>
 	<xsl:import href="images.xsl"/>
@@ -196,6 +197,26 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
+	<xsl:template match="w:style[@w:type='paragraph']">
+		<xsl:if test="@w:default=1">
+			<xsl:value-of select="concat('p.',' { ')"/><xsl:apply-templates select="w:pPr" /> }
+			<xsl:value-of select="concat('p>span { ')"/><xsl:apply-templates select="w:rPr" /> }
+			<xsl:for-each select="w:pPr/w:tabs/w:tab">
+				<xsl:value-of select="concat('p div.tab:nth-of-type(',position(),') { width: ',(number(./@w:pos) div 20) * (4 div 3),'px !important }')"/>
+			</xsl:for-each>	
+		</xsl:if>
+		<xsl:value-of select="concat('p.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:pPr" /> }
+		<xsl:value-of select="concat('p.',./@w:styleId,'>span { ')"/><xsl:apply-templates select="w:rPr" /> }
+		<xsl:for-each select="w:pPr/w:tabs/w:tab">
+			<xsl:value-of select="concat('p.',../../../@w:styleId,' div.tab:nth-of-type(',position(),') { width: ',(number(./@w:pos) div 20) * (4 div 3),'px !important }')"/>
+		</xsl:for-each>				
+	</xsl:template>
+	<xsl:template match="w:style[@w:type='character']">
+		<xsl:if test="@w:default=1">
+			<xsl:value-of select="concat('span { ')"/><xsl:apply-templates select="w:rPr" /> }
+		</xsl:if>
+		<xsl:value-of select="concat('span.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:rPr" /> }
+	</xsl:template>
 	<xsl:template match="w:body">
 		<xsl:variable name="themefile" select="document(resolve-uri(document(resolve-uri('_rels/document.xml.rels',base-uri()))/*/*[@Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme']/@Target,base-uri()))"/>
 
@@ -274,38 +295,9 @@
 				}
 				article>hr[data-firstheader="true"]+div>footer.first ~ footer {
 					display:none !important;
-				}				
-				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='paragraph']">
-					<xsl:value-of select="concat('p.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:pPr" /> }
-					<xsl:value-of select="concat('p.',./@w:styleId,'>span { ')"/><xsl:apply-templates select="w:rPr" /> }
-					<xsl:for-each select="w:pPr/w:tabs/w:tab">
-						<xsl:value-of select="concat('p.',../../../@w:styleId,' div.tab:nth-of-type(',position(),') { width: ',(number(./@w:pos) div 20) * (4 div 3),'px !important }')"/>
-					</xsl:for-each>
-				</xsl:for-each>
-				<xsl:for-each select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[@w:type='character']">
-					<xsl:value-of select="concat('span.',./@w:styleId,' { ')"/><xsl:apply-templates select="w:rPr" /> }
-				</xsl:for-each>
-				<xsl:for-each select="document(resolve-uri('numbering.xml',base-uri()))/w:numbering/w:num">
-					<xsl:variable name="listid" select="@w:numId"/>
-					<xsl:variable name="absid" select="w:abstractNumId/@w:val"/>
-					<xsl:for-each select="../w:abstractNum[@w:abstractNumId=$absid]/w:lvl[w:pPr|w:rPr]">
-						<xsl:variable name="deep" select="number(@w:ilvl)+1"/>
-						section ul.level<xsl:value-of select="@w:ilvl"/>.list<xsl:value-of select="$listid"/> { 
-							<xsl:if test="w:pPr/w:ind/@w:left">
-								padding-left:<xsl:value-of select='number(w:pPr/w:ind/@w:left) div 20'/>pt;
-							</xsl:if>
-						}
-						section ul.level<xsl:value-of select="@w:ilvl"/>.list<xsl:value-of select="$listid"/>&gt;li {
-							<xsl:if test="w:pPr/w:ind/@w:hanging">
-								text-indent:-<xsl:value-of select='number(w:pPr/w:ind/@w:hanging) div 20'/>pt;
-							</xsl:if>
-						}
-						section ul.level<xsl:value-of select="@w:ilvl"/>.list<xsl:value-of select="$listid"/>&gt;li&gt;p:first-child {
-							<xsl:apply-templates select="w:pPr" /> 
-						}
-						section ul.level<xsl:value-of select="@w:ilvl"/>.list<xsl:value-of select="$listid"/>&gt;li&gt;p:first-child&gt;span { <xsl:apply-templates select="w:rPr" /> }
-					</xsl:for-each>
-				</xsl:for-each>
+				}
+				<xsl:apply-templates select="document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[not(@w:type='table')]" />
+				<xsl:apply-templates select="document(resolve-uri('numbering.xml',base-uri()))/w:numbering/w:num" />
 				<xsl:for-each select="$themefile/a:theme/a:themeElements/a:clrScheme/*">
 					.<xsl:value-of select="local-name(.)"/>fill {
 						<xsl:for-each select="./*">
