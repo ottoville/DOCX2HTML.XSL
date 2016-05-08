@@ -20,6 +20,37 @@
 			ottoville.lamminpaa@gmail.com
 			+358445596869
 	-->	
+	<xsl:template name="pageparagraph">
+		<!-- Helper template to decide which paragraph causes page break-->
+		<xsl:param name="reldocument" />
+		<xsl:param name="themefile" />
+		<xsl:param name="prevpage" />
+		<xsl:param name="sectionselector" />
+		<xsl:param name="defaultheader" />
+		<xsl:param name="defaultfooter" />
+		<xsl:param name="firstpageheader" />
+		<xsl:param name="firstpagefooter" />
+		<xsl:param name="evenheader" />
+		<xsl:param name="evenfooter" />
+		<xsl:param name="sectionnumber" />
+		<xsl:param name="breaks" />
+		<xsl:if test="following-sibling::*[1]/w:pPr/w:pStyle/@w:val[contains($breaks,concat(' ',.,' '))] or current()[w:r/w:br[@w:type='page']]">
+			<xsl:call-template name="pages">
+				<xsl:with-param name="reldocument" select="$reldocument" />
+				<xsl:with-param name="themefile" select="$themefile" />
+				<xsl:with-param name="sectionselector" select="$sectionselector" />
+				<xsl:with-param name="selector" select="preceding-sibling::*|current()" />
+				<xsl:with-param name="defaultheader" select="$defaultheader" />
+				<xsl:with-param name="defaultfooter" select="$defaultfooter" />
+				<xsl:with-param name="evenheader" select="$evenheader" />
+				<xsl:with-param name="evenfooter" select="$evenfooter" />
+				<xsl:with-param name="firstpageheader" select="$firstpageheader" />
+				<xsl:with-param name="firstpagefooter" select="$firstpagefooter" />
+				<xsl:with-param name="prevpage" select="((preceding-sibling::*|current())[./following-sibling::*[1][w:pPr/w:pStyle/@w:val[contains($breaks,concat(' ',.,' '))]]]|(preceding-sibling::*|current())[w:r/w:br[@w:type='page']])[count(./preceding-sibling::*) &lt; count(current()/preceding-sibling::*)][last()]" />
+				<xsl:with-param name="sectionnumber" select="$sectionnumber" />
+			</xsl:call-template>
+		</xsl:if>
+	</xsl:template>
 	<xsl:template name="page">
 		<xsl:param name="reldocument" />
 		<xsl:param name="themefile" />
@@ -63,21 +94,12 @@
 				</xsl:if>		
 				
 				<xsl:for-each select="$selector">
-					<!--
-					This can not work, variable cannot be changed after it has been set.
-					<xsl:variable name="listid" select="w:pPr/w:numPr/w:numId/@w:val" />
-					<xsl:variable name="nextlistid" select="./following-sibling::w:p[w:pPr/w:numPr][not(w:pPr/w:numPr/w:numId/@w:val=$listid)][1]/w:pPr/w:numPr/w:numId/@w:val" />
-					Filter empty paragraphs?
-					<xsl:if test="not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=$nextlistid]) and (not(w:pPr/w:numPr) or not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]))">
-						-->
-					<!--Filter list items from middle of list -->
 					<xsl:if test="not(w:pPr/w:numPr) or (w:pPr/w:numPr and not(./preceding-sibling::w:p[w:pPr/w:numPr/w:numId/@w:val=current()/w:pPr/w:numPr/w:numId/@w:val]))">
 						<xsl:apply-templates select="current()">
 								<xsl:with-param name="reldocument" select="$reldocument" />
 								<xsl:with-param name="themefile" select="$themefile" />
 							</xsl:apply-templates>
 					</xsl:if>
-					<!--</xsl:if> -->
 				</xsl:for-each>	
 				<xsl:if test="string-length($firstpagefooter)">
 					<footer>
@@ -154,6 +176,7 @@
 	</xsl:template>
 	<xsl:template name="sections"><!-- Always the last element of section -->
 		<xsl:param name="themefile" />
+		<xsl:param name="breaks" />
 		<xsl:variable name="reldocument" select="resolve-uri('_rels/document.xml.rels',base-uri())" />
 
 		<!-- Either the page section, following section or document section-->
@@ -165,6 +188,7 @@
 		<xsl:variable name="paddingleft" select="number($sectionselector[1]/w:pgMar/@w:left)" />
 		<xsl:variable name="prevsection" select="preceding-sibling::*[w:pPr/w:sectPr][1]" />		
 		<xsl:variable name="sectionnumber" select="concat('section',position())" />
+
 		<xsl:variable name="defaultheader">
 			<xsl:choose>
 				<xsl:when test="$sectionselector/w:headerReference[@w:type='default']/@r:id">
@@ -234,22 +258,42 @@
 		<!-- Apply template to pages that belongs to this section -->
 		<xsl:choose>
 			<xsl:when test="not($prevsection)"> <!--first section or document with one section -->
-			<xsl:for-each select="(preceding-sibling::*|current())[w:r/w:br[@w:type='page']]|(preceding-sibling::*|current())[last()]"> <!-- always last element of page -->
-					<xsl:call-template name="pages">
+			<!-- Match last element of first page
+				paragraphs to search brake are:
+					(preceding-sibling::*|current())
+				Page break can be defined by
+					- w:br[@w:type='page'] in document
+					- w:pageBreakBefore in style					
+			-->
+				<xsl:for-each select="preceding-sibling::*|current()">
+					<xsl:call-template name="pageparagraph">
 						<xsl:with-param name="reldocument" select="$reldocument" />
 						<xsl:with-param name="themefile" select="$themefile" />
 						<xsl:with-param name="sectionselector" select="$sectionselector" />
-						<xsl:with-param name="selector" select="preceding-sibling::*|current()" />
 						<xsl:with-param name="defaultheader" select="$defaultheader" />
 						<xsl:with-param name="defaultfooter" select="$defaultfooter" />
 						<xsl:with-param name="evenheader" select="$evenheader" />
 						<xsl:with-param name="evenfooter" select="$evenfooter" />
 						<xsl:with-param name="firstpageheader" select="$firstpageheader" />
 						<xsl:with-param name="firstpagefooter" select="$firstpagefooter" />
-						<xsl:with-param name="prevpage" select="(preceding-sibling::*|current())[w:r/w:br[@w:type='page']][count(./preceding-sibling::*) &lt; count(current()/preceding-sibling::*)][last()]" />
 						<xsl:with-param name="sectionnumber" select="$sectionnumber" />
+						<xsl:with-param name="breaks" select="$breaks" />
 					</xsl:call-template>
 				</xsl:for-each>
+				<xsl:call-template name="pages">
+					<xsl:with-param name="reldocument" select="$reldocument" />
+					<xsl:with-param name="themefile" select="$themefile" />
+					<xsl:with-param name="sectionselector" select="$sectionselector" />
+					<xsl:with-param name="selector" select="preceding-sibling::*|current()" />
+					<xsl:with-param name="defaultheader" select="$defaultheader" />
+					<xsl:with-param name="defaultfooter" select="$defaultfooter" />
+					<xsl:with-param name="evenheader" select="$evenheader" />
+					<xsl:with-param name="evenfooter" select="$evenfooter" />
+					<xsl:with-param name="firstpageheader" select="$firstpageheader" />
+					<xsl:with-param name="firstpagefooter" select="$firstpagefooter" />
+					<xsl:with-param name="prevpage" select="((preceding-sibling::*|current())[./following-sibling::*[1][w:pPr/w:pStyle/@w:val[contains($breaks,concat(' ',.,' '))]]]|(preceding-sibling::*|current())[w:r/w:br[@w:type='page']])[count(./preceding-sibling::*) &lt; count(current()/preceding-sibling::*)][last()]" />
+					<xsl:with-param name="sectionnumber" select="$sectionnumber" />
+				</xsl:call-template>
 			</xsl:when>
 			<xsl:when test="w:pPr/w:sectPr">
 				<xsl:for-each select="(current()|./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevsection/preceding-sibling::*)])[w:r/w:br[@w:type='page']]|(current()|./preceding-sibling::*[count(./preceding-sibling::*) &gt; count($prevsection/preceding-sibling::*)])[last()]">

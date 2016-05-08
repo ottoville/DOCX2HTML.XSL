@@ -219,7 +219,7 @@
 	</xsl:template>
 	<xsl:template match="w:body">
 		<xsl:variable name="themefile" select="document(resolve-uri(document(resolve-uri('_rels/document.xml.rels',base-uri()))/*/*[@Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme']/@Target,base-uri()))"/>
-
+		<xsl:variable name="breaks" select="concat(' ',string-join(document(resolve-uri('styles.xml',base-uri()))/w:styles/w:style[w:pPr/w:pageBreakBefore]/@w:styleId,' '),' ')" />
 		<meta name="{'generator'}" content="{'docx2html.xsl https://github.com/ottoville/DOCX2HTML.XSLT'}"/>
 		<article>
 			<!--	Match always last paragraph of page.
@@ -229,6 +229,7 @@
 			<xsl:for-each select="*[w:pPr/w:sectPr]|w:sectPr">
 				<xsl:call-template name="sections">
 					<xsl:with-param name="themefile" select="$themefile" />
+					<xsl:with-param name="breaks" select="$breaks" />
 				</xsl:call-template>
 			</xsl:for-each>
 		</article>
